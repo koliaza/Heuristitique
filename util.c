@@ -1,11 +1,12 @@
 #include "util.h"
 
 #include <stdlib.h>
+#include <math.h>
 
 /* Note : the quality of random number generation is not that important
    for this project */
 int random_int_in_range(int a, int b) {
-    return floor( ((double) rand() / (RAND_MAX + 1)) * (a - b + 1) + a );
+    return floor( ((double) rand() / (((double) RAND_MAX) + 1.0)) * (a - b + 1) + a );
 }
 
 /* Using the Knuth-Fisher-Yates algorithm */
