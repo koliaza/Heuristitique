@@ -3,6 +3,72 @@
 #include <stdlib.h>
 #include <math.h>
 
+
+int_list* il_cons(int x, int_list* l) {
+    int_list* r = malloc(sizeof(int_list));
+    r->x = x;
+    r->next = l;
+    return r;
+}
+
+void il_free(int_list* l) {
+    int_list *p, *q;
+    p = l;
+    while (p != NULL) {
+        q = p->next;
+        free(p);
+        p = q;
+    }
+}
+
+int_list* il_s_insert(int x, int_list* l) {
+    int_list *p, *q;
+
+    if (l == NULL || l->x >= x) {
+        return il_cons(x, l);
+    } else {
+        p = l;
+        q = l->next;
+        while (q != NULL && q->x > x) {
+            p = q;
+            q = p->next;
+        }
+        p->next = il_cons(x, q);
+        return l;
+    }
+}
+
+int_list il_s_insert_once(int x, int_list* l) {
+    int_list *p, *q;
+
+    if (l == NULL || l->x > x) {
+        return il_cons(x, l);
+    } else if (l->x == x)  {
+        return l;
+    } else {
+        p = l;
+        q = l->next;
+        while (q != NULL && q->x < x) {
+            p = q;
+            q = p->next;
+        }
+        p->next = il_cons(x, q);
+        return l;
+    }    
+}
+
+/* remove function : code later */
+
+int il_s_member(int x, int_list* l) {
+    int_list *p;
+    for (p = l; p != NULL; p = p->next) {
+        if (p->x == x) break;
+    }
+    return (p != NULL);
+}
+
+
+
 int coin_flip(double p) {
     return (rand() <= p*RAND_MAX);
 }
