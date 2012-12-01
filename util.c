@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+int coin_flip(double p) {
+    return (rand() <= p*RAND_MAX);
+}
+
 /* Note : the quality of random number generation is not that important
    for this project */
 int random_int_in_range(int a, int b) {

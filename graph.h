@@ -5,9 +5,13 @@
 
 struct graph_matrix {
     int n;
-    int *matrix;
+    int *matrix; /* Convention : the (i,j) coefficient of the matrix
+                    is matrix[i*n + j] */
 };
 typedef struct graph_matrix graph_matrix;
+
+graph_matrix* alloc_graph_matrix(int n);
+void free_graph_matrix(graph_matrix* g);
 
 struct int_list {
     int x;
