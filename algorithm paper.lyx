@@ -1,0 +1,402 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+An heuristic for graph isomorphisms
+\end_layout
+
+\begin_layout Author
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+Nguy
+\backslash
+~{
+\backslash
+^e}n Lê Thành D
+\backslash
+~ung 
+\backslash
+and  Blanchard Nicolas Koliaza
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Foreword 
+\end_layout
+
+\begin_layout Standard
+The problem considered is the graph isomorphism (GI) problem : given two
+ graphs 
+\begin_inset Formula $G$
+\end_inset
+
+ and 
+\begin_inset Formula $G'$
+\end_inset
+
+, can one compute an isomorphism between them.
+ The original goal was to implement the Weisfeiler-Lehman heuristic in the
+ C programming language, but we chose to implement our own heuristic to
+ test its performance.
+\end_layout
+
+\begin_layout Section
+Algorithmical Considerations
+\end_layout
+
+\begin_layout Standard
+We adopt the notations of graphs with n vertices and m edges.
+ 
+\begin_inset Formula $G(n,p)$
+\end_inset
+
+ denotes the graph generated through the Erdös-Rényi model with n vertices
+ and probability p for each edge.
+ 
+\end_layout
+
+\begin_layout Standard
+The GI problem lies between the complexity classes P and NP and Schöning
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Scho88"
+
+\end_inset
+
+ proved that it is not NP-complete unless 
+\begin_inset Formula $P=NP$
+\end_inset
+
+.
+ However, no polynomial solution has been found and the best deterministic
+ algorithm so far is due to Eugene Luks and runs in 
+\begin_inset Formula $2^{O(\sqrt{n\, logn})}$
+\end_inset
+
+
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Babai83"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+However some efficient heuristics are available, including 
+\emph on
+nauty
+\emph default
+ and 
+\emph on
+conauto
+\emph default
+, which runs in 
+\begin_inset Formula $O(n^{5})$
+\end_inset
+
+ with very high probability for any graph in 
+\begin_inset Formula $G(n,p)$
+\end_inset
+
+
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Presa09"
+
+\end_inset
+
+.
+ In our algorithm and test we often consider multi-graphs, as the hard cases
+ are much easier to generate for multi-graphs and the heuristic work the
+ same.
+ 
+\end_layout
+
+\begin_layout Section
+The Heuristics
+\end_layout
+
+\begin_layout Subsection
+The Weisfeiler-Lehman heuristic
+\end_layout
+
+\begin_layout Standard
+The original Weisfeiler-Lehman (WL) heuristic works by coloring the edges
+ of a graph according to the following rules :
+\end_layout
+
+\begin_layout Itemize
+We begin with a coloring that assigns to every vertex the same color.
+\end_layout
+
+\begin_layout Itemize
+At each pass, the color of each vertex is determined by the number of neighbours
+ of color c for each c.
+\end_layout
+
+\begin_layout Itemize
+After at most n passes, the colors don't change anymore.
+\end_layout
+
+\begin_layout Standard
+These rules actually only produce a certificate of non-isomorphism.
+ To construct an isomorphism using WL one uses backtracking coupled with
+ the fact that the image of a vertex has to be of the same color.
+ 
+\end_layout
+
+\begin_layout Standard
+It is easy to see that two isomorphic graphs behave in the same way when
+ subject to WL coloring, but the converse does not generally hold.
+ On G(n,p) graphs, one can show that the probability of two graphs being
+ non-isomorphic while admitting the same coloring tends towards 0 as n increases.
+ However some special classes of graphs do not behave in such a way, and
+ backtracking becomes omnipresent, notably in k-regular graphs, thus leading
+ to time complexity up to 
+\begin_inset Formula $O(n^{n})$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Subsection
+Another heuristic
+\end_layout
+
+\begin_layout Subsubsection
+The idea
+\end_layout
+
+\begin_layout Standard
+Our heuristic is based on the following property : 
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $V_{k}(x)$
+\end_inset
+
+ be the number of neighbours at distance exactly k from x, then if 
+\begin_inset Formula $f$
+\end_inset
+
+ is an isomorphism between 
+\begin_inset Formula $G$
+\end_inset
+
+ and 
+\begin_inset Formula $G'$
+\end_inset
+
+ , 
+\begin_inset Formula $V_{k}(x)=V_{k}(f(x))$
+\end_inset
+
+.
+ Thus, by computing the different 
+\begin_inset Formula $V_{x}$
+\end_inset
+
+ we can prune the search tree and limit the possibilities.
+ We name the array of degrees 
+\begin_inset Formula $V_{k}(x)$
+\end_inset
+
+ for k between 1 and n V(x), and compute an array containing V(x) for each
+ x, obtaining the 
+\begin_inset Formula $n\times n$
+\end_inset
+
+ matrix V.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+The algorithm
+\end_layout
+
+\begin_layout Standard
+The algorithm we use actually incorporates two testing phases to quickly
+ eliminate easy cases.
+ It can be decomposed in the following steps : 
+\end_layout
+
+\begin_layout Enumerate
+Lecture and choice of data structure
+\end_layout
+
+\begin_layout Enumerate
+Separation into connex components
+\end_layout
+
+\begin_layout Enumerate
+Primary test phase
+\end_layout
+
+\begin_layout Enumerate
+Construction of the V-array 
+\end_layout
+
+\begin_layout Enumerate
+Sorting of the V-array
+\end_layout
+
+\begin_layout Enumerate
+Comparison of the V-arrays
+\end_layout
+
+\begin_layout Enumerate
+If possible construction of an isomorphism using backtracking
+\end_layout
+
+\begin_layout Subsubsection
+Details and optimization
+\end_layout
+
+\begin_layout Standard
+The choice of data structures varies between adjacency matrix and list,
+ and sometimes both, and allows us to take advantage of faster algorithms
+ on sparse graphs using lists, while allowing us to know in O(1) if two
+ vertices are linked.
+ 
+\end_layout
+
+\begin_layout Standard
+The primary test phase relies on the degree list and connex components to
+ check if a quick certificate of non-isomorphism can be found.
+\end_layout
+
+\begin_layout Standard
+The construction of the V-array is generally the most time-expensive task,
+ it is mostly done by multiplication of the adjacency matrix (or by equivalent
+ operations on lists).
+ Sorting the V-array is easily done with a heapsort.
+ The construction of the isomorphism is done by trying to assign to an x
+ an y such that
+\begin_inset Formula $V(x)=V(y)$
+\end_inset
+
+ and backtracking when unsuccessfull.
+ 
+\end_layout
+
+\begin_layout Standard
+Some code optimizations have also been added : the construction of V-arrays
+ by matrix multiplication can be parallelized easily, and multi-threading
+ has been used to do so.
+ We also used it for sorting the arrays.
+ However we didn't use Strassen's algorithm because for the matrix size
+ considered (
+\begin_inset Formula $n\le500$
+\end_inset
+
+) the gain is very small and mostly compensated by the overhead.
+ 
+\end_layout
+
+\begin_layout Section
+Benchmarks
+\end_layout
+
+\begin_layout Standard
+We have included different test programs, depending on the model : 
+\end_layout
+
+\begin_layout Standard
+The Erdös-Rényi model with probability p for each edge works in general
+ quite fast because the probability that two graphs are not isomorphic (and
+ trigger a certificate) is very high.
+ 
+\end_layout
+
+\begin_layout Standard
+The similar model with 
+\end_layout
+
+\begin_layout Section
+Comparison with Weisfeiler-Lehman
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+bibfiles "bibliography algorithms"
+options "bibtotoc,plain"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
