@@ -141,8 +141,8 @@ Initial parsing and creation of the data structure for one graph
 \end_layout
 
 \begin_layout Enumerate
-Insertion into adjacency list with counter (counter used for the choice
- of representation)
+Insertion into adjacency list with counter (total number of edges, used
+ for the choice of representation)
 \end_layout
 
 \begin_layout Enumerate
@@ -163,7 +163,7 @@ Naive multiplication of
 \end_layout
 
 \begin_layout Enumerate
-Permutation of row and column (as when changing the base)
+Permutation of row and column (as when changing the basis)
 \end_layout
 
 \begin_layout Enumerate
@@ -187,10 +187,6 @@ n-th order neighbourhood
 \end_layout
 
 \begin_layout Enumerate
-Separation into connex components list
-\end_layout
-
-\begin_layout Enumerate
 Parallelization of the V-matrix construction 
 \end_layout
 
@@ -199,11 +195,11 @@ Adjacency list manipulation
 \end_layout
 
 \begin_layout Enumerate
-Creation of the vertex-order array 
+Creation of the vertex degree array 
 \end_layout
 
 \begin_layout Enumerate
-Separation into connex components list
+Separation into connected components list
 \end_layout
 
 \begin_layout Enumerate
@@ -247,11 +243,52 @@ setcounter{enumi}{0}
 \end_layout
 
 \begin_layout Enumerate
-Reading and parsing of the input graphs (2 to more)
+Reading and parsing of the input graphs (2 to more) and choice of representation
 \end_layout
 
 \begin_layout Enumerate
-Separation into 
+First batch of tests
+\end_layout
+
+\begin_layout Enumerate
+Construction of the V-matrices 
+\end_layout
+
+\begin_layout Enumerate
+Ordering of the V-matrices (internal ordering)
+\end_layout
+
+\begin_layout Enumerate
+(Optional) Ordering of the V-matrices array when run on large numbers of
+ graphs.
+\end_layout
+
+\begin_layout Enumerate
+Comparison in the results of 5 or 6 to check any possibility of isomorphism
+\end_layout
+
+\begin_layout Enumerate
+exponential look-up among the remaining possibilities
+\end_layout
+
+\begin_layout Subsection
+First batch of tests : 
+\end_layout
+
+\begin_layout Standard
+Should run in O(n), 
+\begin_inset Formula $O(n^{2})$
+\end_inset
+
+ at worst
+\end_layout
+
+\begin_layout Standard
+list of vertex degree,
+\end_layout
+
+\begin_layout Standard
+list of connected components (with size)
 \end_layout
 
 \end_body
