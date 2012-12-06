@@ -77,7 +77,8 @@ void gl_edge_add(graph_list* g, int i, int j) {
     g->list_array[j] = il_s_insert(i, g->list_array[j]);
 }
 void gl_edge_remove(graph_list* g, int i, int j) {
-
+    g->list_array[i] = il_s_remove_once(j, g->list_array[i]);
+    g->list_array[j] = il_s_remove_once(i, g->list_array[j]);
 }
 void gl_multi_edge_add(graph_list* g, int i, int j) {
 
