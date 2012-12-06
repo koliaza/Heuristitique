@@ -286,7 +286,7 @@ The algorithm
 \end_layout
 
 \begin_layout Standard
-The algorithm we use actually incorporates two testing phases to quickly
+The algorithm we use actually incorporates multiple testing phases to quickly
  eliminate easy cases.
  It can be decomposed in the following steps : 
 \end_layout
@@ -365,22 +365,73 @@ Some code optimizations have also been added : the construction of V-arrays
 \end_layout
 
 \begin_layout Section
-Benchmarks
+Generating Tests
 \end_layout
 
 \begin_layout Standard
-We have included different test programs, depending on the model : 
+We have included different basic test generation programs, depending on
+ the model : 
 \end_layout
 
-\begin_layout Standard
-The Erdös-Rényi model with probability p for each edge works in general
- quite fast because the probability that two graphs are not isomorphic (and
- trigger a certificate) is very high.
+\begin_layout Subsection
+Random generation
+\end_layout
+
+\begin_layout Itemize
+The Erdös-Rényi 
+\begin_inset Formula $G(n,p)$
+\end_inset
+
+ model with probability p for each edge works in general quite fast because
+ the probability that two graphs are not isomorphic (and trigger a certificate)
+ is very high.
+ 
+\end_layout
+
+\begin_layout Itemize
+The similar model with 
+\begin_inset Formula $G(n,M)$
+\end_inset
+
+ behaves in a similar fashion.
+\end_layout
+
+\begin_layout Itemize
+A model to generate random k-regular multigraphs that generates k random
+ permutations of n vertices and links each vertice of the initial array
+ to each of its images in the resulting permutations.
  
 \end_layout
 
 \begin_layout Standard
-The similar model with 
+All other methods so far for generating k-regular graphs (and not multigraphs)
+ are probabilistic except for very small k, and when 
+\begin_inset Formula $k\ge log(n)$
+\end_inset
+
+ have exponential expected time 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Wormwald:UniformGeneration"
+
+\end_inset
+
+, so we restricted ourselves to those three models, as our algorithm should
+ work as well on multigraphs as on normal graphs.
+\end_layout
+
+\begin_layout Subsection
+Isomorphic graph generation
+\end_layout
+
+\begin_layout Standard
+To generate two isomorphic graphs is actually really easy : as two graphs
+ are isomorphic if and only if their adjacency matrices are similar, one
+ has to compute a random permutation (which corresponds to a change of basis),
+ and to apply it to any graph to obtain an isomorphic copy.
+ We generate those from all three different models of random graphs already
+ implemented.
+ 
 \end_layout
 
 \begin_layout Section
