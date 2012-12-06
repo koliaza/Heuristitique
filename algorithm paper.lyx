@@ -126,7 +126,7 @@ The GI problem lies between the complexity classes P and NP and Schöning
  
 \begin_inset CommandInset citation
 LatexCommand cite
-key "Scho88"
+key "Schoening1988"
 
 \end_inset
 
@@ -143,7 +143,7 @@ key "Scho88"
 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "Babai83"
+key "Babai1983"
 
 \end_inset
 
@@ -170,7 +170,7 @@ conauto
 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "Presa09"
+key "Lopez-Presa2009"
 
 \end_inset
 
@@ -393,7 +393,7 @@ The similar model with
 \begin_inset Formula $G(n,M)$
 \end_inset
 
- behaves in a similar fashion.
+ behaves the same way.
 \end_layout
 
 \begin_layout Itemize
@@ -442,7 +442,7 @@ Comparison with Weisfeiler-Lehman
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
 bibfiles "bibliography algorithms"
-options "bibtotoc,plain"
+options "plain"
 
 \end_inset
 
