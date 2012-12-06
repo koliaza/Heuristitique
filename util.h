@@ -3,11 +3,11 @@
 
 /*** Linked lists of integers ***/
 
+typedef struct int_list int_list;
 struct int_list {
     int x;
     int_list *next;
 };
-typedef struct int_list int_list;
 
 int_list* il_cons(int x, int_list* l);
 /* recursively free all elements */
@@ -17,7 +17,8 @@ void il_free(int_list* l);
    and they are __destructive__ */
 int_list* il_s_insert(int x, int_list* l);
 int_list* il_s_insert_once(int x, int_list* l);
-/* int_list* il_s_remove(int x, int_list* l); */
+int_list* il_s_remove_once(int x, int_list* l);
+/* int_list* il_s_remove_all(int x, int_list* l); */
 int il_s_member(int x, int_list* l);
 
 

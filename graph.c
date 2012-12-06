@@ -1,6 +1,7 @@
 #include "graph.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 graph_matrix* gm_alloc(int n) {
     graph_matrix *g;
@@ -13,7 +14,14 @@ graph_matrix* gm_alloc(int n) {
         exit(1);
     }
 
-    return p;
+    return g;
+}
+
+graph_matrix* gm_init_zero(graph_matrix* g) {
+    int i;
+    for (i = 0; i < g->n * g->n; i++)
+        g->matrix[i] = 0;
+    return g;
 }
 
 void gm_matrix(graph_matrix* g) {
@@ -50,14 +58,14 @@ graph_list* gl_alloc(int n) {
     g->n = n;
     g->list_array = malloc(n*sizeof(int_list));
     for (i = 0; i < n; i++)
-        list_array[i] = NULL;
+        g->list_array[i] = NULL;
     return g;
 }
 
 void gl_free(graph_list* g) {
     int i;
     for (i = 0; i < g->n; i++)
-        sil_free(g->list_array[i]);
+        il_free(g->list_array[i]);
     free(g);
 }
 

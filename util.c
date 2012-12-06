@@ -21,6 +21,9 @@ void il_free(int_list* l) {
     }
 }
 
+/* The insert/remove functions might not have great performance
+   because they do a lot of branching */
+
 int_list* il_s_insert(int x, int_list* l) {
     int_list *p, *q;
 
@@ -38,7 +41,7 @@ int_list* il_s_insert(int x, int_list* l) {
     }
 }
 
-int_list il_s_insert_once(int x, int_list* l) {
+int_list* il_s_insert_once(int x, int_list* l) {
     int_list *p, *q;
 
     if (l == NULL || l->x > x) {
@@ -57,7 +60,28 @@ int_list il_s_insert_once(int x, int_list* l) {
     }    
 }
 
-/* remove function : code later */
+int_list* il_s_remove_once(int x, int_list* l) {
+    int_list *p, *prev;
+    
+    if (l == NULL) {
+        return NULL;
+    } else if (l->x == x) {
+        p = l->next;
+        free(l);
+        return p;
+    } else {
+        p = l->next; prev = l;
+        while (p != NULL && p->x <= x) {
+            if (p->x == x) {
+                prev->next = p->next;
+                return l;
+            }
+            prev = p;
+            p = p->next;
+        }
+        return l;
+    }
+}
 
 int il_s_member(int x, int_list* l) {
     int_list *p;

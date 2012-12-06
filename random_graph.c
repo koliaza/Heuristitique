@@ -3,20 +3,35 @@
 #include "graph.h"
 #include "util.h"
 
-graph_matrix* erdos_renyi(int n, double p) {
+#include <stdlib.h>
+
+graph_matrix* erdos_renyi_gnp(int n, double p) {
     int i, j;
     graph_matrix* g;
 
-    g = alloc_graph_matrix(n);
+    g = gm_alloc(n);
     for (i = 0; i < n; i++) {
         g->matrix[i*n+i] = 0;
         for (j = i+1; j < n; j++) {
             if (coin_flip(p))
-                gm_edge_add(i,j);
+                gm_edge_add(g,i,j);
             else
-                gm_edge_remove(i,j);
-            }
+                gm_edge_remove(g,i,j);
         }
+    }
+    
+    return g;
+}
+
+graph_matrix* erdos_renyi_gnm(int n, int m) {
+    int i;
+    graph_matrix* g;
+
+    g = gm_init_zero(gm_alloc(n));
+    for (i = 0; i < m; i++) {
+        gm_multi_edge_add(g,
+                          random_int_in_range(0, n-1),
+                          random_int_in_range(0, n-1));
     }
     
     return g;
@@ -31,19 +46,17 @@ graph_matrix* random_k_regular(int n, int k) {
     for (i = 0; i < n; i++)
         t[i] = i;
 
-    g = alloc_graph_matrix(n);
-    for (i = 0; i < n*n; i++)
-        g->matrix[i] = 0;
+    g = gm_init_zero(gm_alloc(n));
 
     for (i = 0; i < k; i++) {
         shuffle(n, t);
         for (j = 0; j < n; j++) {
-            if gm_edge(g, i, t[i]) break;
+            if (gm_edge(g, i, t[i])) break;
         }
         if (j < n) { i--; continue; }
         
         for (j = 0; j < n; j++)
-            gm_edge_add(j, t[j]);
+            gm_edge_add(g, j, t[j]);
             
     }
 
@@ -60,9 +73,7 @@ graph_matrix* random_k_regular_multi(int n, int k) {
     for (i = 0; i < n; i++)
         t[i] = i;
 
-    g = alloc_graph_matrix(n);
-    for (i = 0; i < n*n; i++)
-        g->matrix[i] = 0;
+    g = gm_init_zero(gm_alloc(n));
 
     for (i = 0; i < k; i++) {
         shuffle(n, t);
