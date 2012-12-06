@@ -2,16 +2,26 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "util.h"
-
-int t[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+#include "random_graph.h"
+#include "io.h"
 
 int main(int argc, char **argv) {
     int i;
+    char s[128];
+    FILE *f;
+    graph_matrix* g;
+    
     srand(time(NULL));
-    printf("RAND_MAX  = %d\n", RAND_MAX);
-    shuffle(10, t);
-    for (i = 0; i < 10; i++)
-        printf("%d\n", t[i]);
+
+    for (i = 0; i < 100; i++) {
+        sprintf(s, "random-20-regular-%02d.dot", i);
+        f = fopen(s, "w");
+        if (f == NULL) break;
+
+        g = random_k_regular(50,20);
+        fprint_graph_matrix_dot(f, g);
+        gm_free(g);
+    }
+
     return 0;
 }

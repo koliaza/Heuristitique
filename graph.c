@@ -24,7 +24,7 @@ graph_matrix* gm_init_zero(graph_matrix* g) {
     return g;
 }
 
-void gm_matrix(graph_matrix* g) {
+void gm_free(graph_matrix* g) {
     free(g->matrix);
     free(g);
 }

@@ -57,7 +57,6 @@ graph_matrix* random_k_regular(int n, int k) {
         
         for (j = 0; j < n; j++)
             gm_edge_add(g, j, t[j]);
-            
     }
 
     free(t);

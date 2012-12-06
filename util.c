@@ -100,7 +100,7 @@ int coin_flip(double p) {
 /* Note : the quality of random number generation is not that important
    for this project */
 int random_int_in_range(int a, int b) {
-    return floor( ((double) rand() / (((double) RAND_MAX) + 1.0)) * (a - b + 1) + a );
+    return floor( ((double) rand() / (((double) RAND_MAX) + 1.0)) * (b - a + 1) + a );
 }
 
 /* Using the Knuth-Fisher-Yates algorithm */
