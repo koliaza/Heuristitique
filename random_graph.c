@@ -3,6 +3,8 @@
 #include "graph.h"
 #include "util.h"
 
+#include <stdio.h>
+#include <assert.h>
 #include <stdlib.h>
 
 graph_matrix* erdos_renyi_gnp(int n, double p) {
@@ -51,12 +53,16 @@ graph_matrix* random_k_regular(int n, int k) {
     for (i = 0; i < k; i++) {
         shuffle(n, t);
         for (j = 0; j < n; j++) {
-            if (gm_edge(g, i, t[i])) break;
+            /* the 2nd condition solves a subtle bug */
+            if (j == t[j] || j == t[t[j]] || gm_edge(g, j, t[j]))
+                break;
         }
         if (j < n) { i--; continue; }
         
-        for (j = 0; j < n; j++)
+        for (j = 0; j < n; j++) {
+            assert(!gm_edge(g, j, t[j]));
             gm_edge_add(g, j, t[j]);
+        }
     }
 
     free(t);

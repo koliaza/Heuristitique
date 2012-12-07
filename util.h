@@ -16,6 +16,7 @@ void il_free(int_list* l);
 /* These functions only work correctly on __sorted__ lists,
    and they are __destructive__ */
 int_list* il_s_insert(int x, int_list* l);
+/* maybe call this insert_if_absent */
 int_list* il_s_insert_once(int x, int_list* l);
 int_list* il_s_remove_once(int x, int_list* l);
 /* int_list* il_s_remove_all(int x, int_list* l); */

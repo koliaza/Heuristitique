@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 graph_matrix* gm_alloc(int n) {
     graph_matrix *g;
@@ -52,6 +53,18 @@ void gm_multi_edge_remove(graph_matrix* g, int i, int j) {
 }
 
 
+int gm_vertex_degree(graph_matrix* g, int i) {
+    int j, d = 0;
+    /* maybe factorize this code later into a sum_row function for matrices */
+    assert(i < g->n);
+    for (j = 0; j < g->n; j++) {
+        d += g->matrix[i*g->n + j];
+    }
+    return d;
+}
+
+
+
 graph_list* gl_alloc(int n) {
     int i;
     graph_list* g = malloc(sizeof(graph_list));
@@ -73,16 +86,18 @@ int gl_edge(graph_list* g, int i, int j) {
     return il_s_member(i, g->list_array[j]);
 }
 void gl_edge_add(graph_list* g, int i, int j) {
-    g->list_array[i] = il_s_insert(j, g->list_array[i]);
-    g->list_array[j] = il_s_insert(i, g->list_array[j]);
+    g->list_array[i] = il_s_insert_once(j, g->list_array[i]);
+    g->list_array[j] = il_s_insert_once(i, g->list_array[j]);
 }
 void gl_edge_remove(graph_list* g, int i, int j) {
     g->list_array[i] = il_s_remove_once(j, g->list_array[i]);
     g->list_array[j] = il_s_remove_once(i, g->list_array[j]);
 }
 void gl_multi_edge_add(graph_list* g, int i, int j) {
-
+    g->list_array[i] = il_s_insert(j, g->list_array[i]);
+    g->list_array[j] = il_s_insert(i, g->list_array[j]);
 }
 void gl_multi_edge_remove(graph_list* g, int i, int j) {
-
+    g->list_array[i] = il_s_remove_once(j, g->list_array[i]);
+    g->list_array[j] = il_s_remove_once(i, g->list_array[j]);
 }

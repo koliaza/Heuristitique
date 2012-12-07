@@ -55,7 +55,9 @@ int_list* il_s_insert_once(int x, int_list* l) {
             p = q;
             q = p->next;
         }
-        p->next = il_cons(x, q);
+        if (q->x != x) {
+            p->next = il_cons(x, q);
+        }
         return l;
     }    
 }
