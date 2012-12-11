@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+/*** Linked lists ***/
 
 int_list* il_cons(int x, int_list* l) {
     int_list* r = malloc(sizeof(int_list));
@@ -94,6 +95,77 @@ int il_s_member(int x, int_list* l) {
 }
 
 
+/*** Matrix manipulation ***/
+
+int* matrix_make_id(int n, int *r) {
+    int i;
+    for (i = 0; i < n*n; i++) {
+        r[i] = 0;
+    }
+    for (i = 0; i < n; i++) {
+        r[i*n+i] = 1;
+    }
+    return r;
+}
+
+int* matrix_add(int n, const int *a, const int *b, int *r) {
+    int i;
+    for (i = 0; i < n*n; i++) {
+        r[i] = a[i] + b[i];
+    }
+    return r;
+}
+
+int* matrix_mult(int n, const int *a, const int *b, int *r) {
+    int i, j, k, x;
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            x = 0;
+            for (k = 0; k < n; k++) {
+                x += a[i*n+k] * b[k*n+j];
+            }
+            r[i*n+j] = x;
+        }
+    }
+    return r;
+}
+
+int* matrix_exp(int n, const int *a, int m, int *r) {
+    /* it would be possible to do one less allocation here
+       at the cost of a memmove()
+       but it would make the code more complicated */
+    int *sq, *tmp;
+
+    if (m == 0) return (matrix_make_id(n, r));
+    if (m == 1) return r;
+
+    sq = matrix_mult(n, a, a, malloc(n*n*sizeof(int)));
+    if (m % 2 == 0) {
+        matrix_exp(n, sq, m/2, r);
+    } else {
+        tmp = matrix_exp(n, sq, m/2, malloc(n*n*sizeof(int)));
+        matrix_mult(n, a, tmp, r);
+        free(tmp);
+    }
+    free(sq);
+
+    return r;
+}
+
+int* matrix_basis_perm(int n, const int *a, const int *p, int *r) {
+    int i,j;
+    
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            r[i*n+j] = a[p[i]*n+p[j]];
+        }
+    }
+
+    return r;
+}
+
+
+/*** Randomness ***/
 
 int coin_flip(double p) {
     return (rand() <= p*RAND_MAX);
