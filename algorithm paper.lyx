@@ -9,10 +9,10 @@
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman default
+\font_roman palatino
 \font_sans default
 \font_typewriter default
-\font_default_family default
+\font_default_family rmdefault
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
@@ -111,9 +111,9 @@ The problem considered is the graph isomorphism (GI) problem : given two
 
 , can one compute an isomorphism between them.
  The original goal was to implement the Weisfeiler-Lehman heuristic in the
- C programming language, but we chose to implement our own heuristic to
- test its performance.
- The precise goal was to find an heuristic which would behave polynomially
+ C programming language, but we chose to implement our own heuristic (named
+ PN for path-neighbour) to test its performance.
+ The main goal was to find an heuristic which would behave polynomially
  on the a bigger subset of problems, even if the polynomial degree increases.
  
 \end_layout
@@ -253,12 +253,12 @@ The idea
 \end_layout
 
 \begin_layout Standard
-Our heuristic is based on the following property : 
+PN is based on the following property : 
 \end_layout
 
 \begin_layout Standard
 Let 
-\begin_inset Formula $V_{k}(x)$
+\begin_inset Formula $N_{k}(x)$
 \end_inset
 
  be the number of neighbours at distance exactly k from x, and 
@@ -278,7 +278,7 @@ Let
 \end_inset
 
  , 
-\begin_inset Formula $V_{k}(x)=V_{k}(f(x))$
+\begin_inset Formula $N_{k}(x)=N_{k}(f(x))$
 \end_inset
 
  and 
@@ -287,7 +287,7 @@ Let
 
 .
  Thus, by computing the different 
-\begin_inset Formula $V_{x}$
+\begin_inset Formula $N_{x}$
 \end_inset
 
  and 
@@ -296,20 +296,20 @@ Let
 
  we can prune the search tree and limit the possibilities.
  We name the array of couples 
-\begin_inset Formula $P_{k}(x),V_{k}(x)$
+\begin_inset Formula $P_{k}(x),N_{k}(x)$
 \end_inset
 
- for k between 1 and n PV(x), and compute an array containing PV(x) for
+ for k between 1 and n PN(x), and compute an array containing PN(x) for
  each x, obtaining the 
 \begin_inset Formula $n\times n$
 \end_inset
 
- matrix PV.
+ matrix PN.
  
 \end_layout
 
 \begin_layout Subsubsection
-The algorithm
+Structure of the algorithm
 \end_layout
 
 \begin_layout Standard
@@ -327,23 +327,55 @@ Primary test phase
 \end_layout
 
 \begin_layout Enumerate
-Construction of each PV-array 
+Construction of each PN-array 
 \end_layout
 
 \begin_layout Enumerate
-Sorting of each PV-array
+Sorting of each PN-array
 \end_layout
 
 \begin_layout Enumerate
-Comparison of the PV-arrays
+Comparison of the PN-arrays 
 \end_layout
 
 \begin_layout Enumerate
-If possible construction of an isomorphism using backtracking
+Comparison of the neighbours of compatible vertices.
+\end_layout
+
+\begin_layout Enumerate
+If possible construction of an isomorphism by refined bruteforce
 \end_layout
 
 \begin_layout Subsubsection
-First test phase 
+Details 
+\end_layout
+
+\begin_layout Standard
+We keep the list of image-possibilities for all vertices in a matrix form.
+ When one line or column becomes full of zeroes, we have a negative certificate.
+ The matrix actually corresponds to classes of an equivalence relation,
+ and every class of cardinal c has at most 
+\begin_inset Formula $c!$
+\end_inset
+
+ possibilities of isomorphism.
+ When the product of the 
+\begin_inset Formula $c!$
+\end_inset
+
+ becomes small, bruteforce becomes possible.
+ The goal of the PN matrix is to separate the vertices in as many classes
+ as possible, but bruteforce can sometimes be used earlier, as is the case
+ in the primary test phase.
+ However, when one computes the PN matrix, it is not always enough, and
+ so we use a technique from WL and compare the immediate neighbourhood of
+ each vertex to see if it is compatible with all of its images, to prune
+ some more.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+Primary test phase 
 \end_layout
 
 \begin_layout Standard
@@ -422,13 +454,13 @@ The choice of data structures varies between adjacency matrix and list,
 \end_layout
 
 \begin_layout Standard
-The construction of the V-array is generally the most time-expensive task,
+The construction of the N-array is generally the most time-expensive task,
  it is mostly done by multiplication of the adjacency matrix (or by equivalent
  operations on lists).
- Sorting the V-array is easily done with a heapsort.
+ Sorting the N-array is easily done with a heapsort.
  The construction of the isomorphism is done by trying to assign to an x
  an y such that
-\begin_inset Formula $V(x)=V(y)$
+\begin_inset Formula $N(x)=N(y)$
 \end_inset
 
  and backtracking when unsuccessfull.
@@ -436,10 +468,10 @@ The construction of the V-array is generally the most time-expensive task,
 \end_layout
 
 \begin_layout Standard
-Some code optimizations have also been added : the construction of V-arrays
- by matrix multiplication can be parallelized easily, and multi-threading
- has been used to do so.
- We also used it for sorting the arrays.
+Some code optimizationsmight be added : the construction of N-arrays by
+ matrix multiplication can be parallelized easily, and multi-threading could
+ be used to do so.
+ It can also be used it for sorting the arrays.
  However we didn't use Strassen's algorithm because for the matrix size
  considered (
 \begin_inset Formula $n\le500$
@@ -450,7 +482,7 @@ Some code optimizations have also been added : the construction of V-arrays
 \end_layout
 
 \begin_layout Section
-Generating Tests
+Tests and Benchmark
 \end_layout
 
 \begin_layout Standard
@@ -519,33 +551,85 @@ To generate two isomorphic graphs is actually really easy : as two graphs
  
 \end_layout
 
+\begin_layout Subsection
+Benchmark
+\end_layout
+
 \begin_layout Section
 Comparison with Weisfeiler-Lehman
 \end_layout
 
 \begin_layout Standard
-Let us suppose one finds a coloring using WL that produces a certificate
- of non-isomorphism.
- It does so at the 
-\begin_inset Formula $k^{th}$
+Our goal here is to show that the subset of problems solved in polynomial
+ time by WL is strictly included in the subset solved by our heuristic.
+ We shall consider an extended version of WL (EWL) to facilitate the proof,
+ where colors aren't redistributed among 
+\begin_inset Formula $[1;n]$
 \end_inset
 
-iteration.
- If 
-\begin_inset Formula $k=1$
-\end_inset
+ but are instead an injective function of the vertex's previous color and
+ the multiset of its neighbour's colors.
+ When WL behaves polynomially, it does so by either finding that two vertices
+ must be image of one another by the isomorphism (if it exists) or by finding
+ a negative certificate.
+ We must show those three properties : 
+\end_layout
 
- then it is simply that the degree list that mattered and our heuristic
- also managed to notice it (it does it quickly thanks to the primary test
- phase, but the PV-array would suffice).
- Now suppose that the two colorings are incompatible, it means that the
- number of vertex of one color isn't the same in both graphs.
- That means that there are two vertices such that they were identically
- colored at 
-\begin_inset Formula $k-1$
-\end_inset
+\begin_layout Itemize
+When WL colors a vertex in an unique color in both graphs, then EWL does
+ the same, and our algorithm also recognizes that those two vertices must
+ be linked if the graphs are isomorphic (polynomial search of isomorphism)
+\end_layout
 
- but that their neighbourhood were not identically colored.
+\begin_layout Itemize
+When WL finds two incompatible coloring, then so does EWL, and our algorithm
+ also gives a negative certificate (polynomial negative certificate)
+\end_layout
+
+\begin_layout Itemize
+When the graphs are isomorphic, WL, EWL and our heuristic compute the isomorphis
+m (correctness)
+\end_layout
+
+\begin_layout Standard
+The third is immediate, because the operations we use are invariant through
+ permutations of the vertices, hence if the two graphs are isomorphic it
+ might take exponential time but will surely end.
+ The two other properties trivially hold for extended WL, and we must show
+ that it implies that they hold for our algorithm.
+ 
+\end_layout
+
+\begin_layout Standard
+We shall proceed by induction to prove that if EWL colors a vertice in G
+ and another in G' in different colors, then our PY algorithm also allows
+ us to differentiate those two vertices.
+ At the first run of the coloring, every vertex is colored by its degree
+ so it is trivially true.
+ 
+\end_layout
+
+\begin_layout Standard
+Now let us suppose that the property holds at run n, and show that it holds
+ at run n+1 : 
+\end_layout
+
+\begin_layout Standard
+Consider two vertices V and W (one per graph) that had the same color for
+ all previous runs, but which are colored differently at run n+1.
+ Then their neighbourhoods are incompatible, which means that the multiset
+ of colors is not the same, so there is a color c such that there is one
+ more vertex of color c in N(V) than in N(W).
+ However, those colors were attributed at run n, so it means that when comparing
+ the PN lists of neighbours of V and W, those lists will be incompatible.
+ Hence V and W can't be linked in PN, which ends the induction.
+ 
+\end_layout
+
+\begin_layout Standard
+This also means that if V and W are colored in the same unique color, then
+ they are linked if possible ( because they can't be linked to any other
+ vertices) so the second property also holds.
  
 \end_layout
 
