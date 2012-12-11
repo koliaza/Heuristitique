@@ -5,14 +5,14 @@
 
 /*** Linked lists ***/
 
-int_list* il_cons(int x, int_list* l) {
+int_list* il_cons(int x, int_list *l) {
     int_list* r = malloc(sizeof(int_list));
     r->x = x;
     r->next = l;
     return r;
 }
 
-void il_free(int_list* l) {
+void il_free(int_list *l) {
     int_list *p, *q;
     p = l;
     while (p != NULL) {
@@ -22,10 +22,18 @@ void il_free(int_list* l) {
     }
 }
 
+int il_length(const int_list *l) {
+    int n = 0;
+    for (; l != NULL ; l = l->next) {
+        n++;
+    }
+    return n;
+}
+
 /* The insert/remove functions might not have great performance
    because they do a lot of branching */
 
-int_list* il_s_insert(int x, int_list* l) {
+int_list* il_s_insert(int x, int_list *l) {
     int_list *p, *q;
 
     if (l == NULL || l->x >= x) {
@@ -33,7 +41,7 @@ int_list* il_s_insert(int x, int_list* l) {
     } else {
         p = l;
         q = l->next;
-        while (q != NULL && q->x > x) {
+        while (q != NULL && q->x < x) {
             p = q;
             q = p->next;
         }
@@ -42,7 +50,7 @@ int_list* il_s_insert(int x, int_list* l) {
     }
 }
 
-int_list* il_s_insert_once(int x, int_list* l) {
+int_list* il_s_insert_once(int x, int_list *l) {
     int_list *p, *q;
 
     if (l == NULL || l->x > x) {
@@ -63,7 +71,7 @@ int_list* il_s_insert_once(int x, int_list* l) {
     }    
 }
 
-int_list* il_s_remove_once(int x, int_list* l) {
+int_list* il_s_remove_once(int x, int_list *l) {
     int_list *p, *prev;
     
     if (l == NULL) {
@@ -86,8 +94,8 @@ int_list* il_s_remove_once(int x, int_list* l) {
     }
 }
 
-int il_s_member(int x, int_list* l) {
-    int_list *p;
+int il_s_member(int x, const int_list *l) {
+    const int_list *p;
     for (p = l; p != NULL; p = p->next) {
         if (p->x == x) break;
     }

@@ -5,32 +5,39 @@
 #include "random_graph.h"
 #include "io.h"
 
+const int n = 12;
+
 int main(int argc, char **argv) {
-    int i;
-    char s[128];
+    int c;
     FILE *f;
-    graph_matrix* g;
+    graph_matrix *gm1 = NULL, *gm2 = NULL;
+    graph_list *gl1 = NULL, *gl2 = NULL;
     
     srand(time(NULL));
+    gm1 = erdos_renyi_gnp(n, 0.42);
+    gl1 = graph_matrix_to_list(gm1);
 
-/*    for (i = 0; i < 100; i++) {
-        sprintf(s, "random-20-regular-%02d.dot", i);
-        f = fopen(s, "w");
-        if (f == NULL) break;
+    f = fopen("foobar", "w");
+    if (f == NULL) exit(1);
+    fprint_graph_list(f, gl1);
+    fclose(f);
 
-        g = random_k_regular(50,20);
-        fprint_graph_matrix_dot(f, g);
-        gm_free(g);
+    gl2 = read_graph_from_file("foobar", NULL);
+    gm2 = graph_list_to_matrix(gl2);
+
+    if (memcmp(gm1->matrix, gm2->matrix, n*n*sizeof(int)) == 0) {
+        printf("Success!\n");
+    } else {
+        printf("Failure :-(\n");
+        print_matrix(n, gm1->matrix);
+        putchar('\n');
+        print_matrix(n, gm2->matrix);
     }
-*/
 
-    g = random_k_regular(10,3);
-    
-    for (i = 0; i < 10; i++) {
-        printf("deg(V_%d) = %d\n", i, gm_vertex_degree(g,i));
-    }
-
-    gm_free(g);
+    gm_free(gm1);
+    gm_free(gm2);
+    gl_free(gl1);
+    gl_free(gl2);
 
     return 0;
 }

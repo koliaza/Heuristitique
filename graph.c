@@ -32,7 +32,7 @@ void gm_free(graph_matrix* g) {
 
 /* inline all following functions to make faster ? */
 
-int gm_edge(graph_matrix* g, int i, int j) {
+int gm_edge(const graph_matrix* g, int i, int j) {
     return g->matrix[i*(g->n) + j];
 }
 void gm_edge_add(graph_matrix* g, int i, int j) {
@@ -53,7 +53,7 @@ void gm_multi_edge_remove(graph_matrix* g, int i, int j) {
 }
 
 
-int gm_vertex_degree(graph_matrix* g, int i) {
+int gm_vertex_degree(const graph_matrix* g, int i) {
     int j, d = 0;
     /* maybe factorize this code later into a sum_row function for matrices */
     assert(i < g->n);
@@ -82,7 +82,7 @@ void gl_free(graph_list* g) {
     free(g);
 }
 
-int gl_edge(graph_list* g, int i, int j) {
+int gl_edge(const graph_list* g, int i, int j) {
     return il_s_member(i, g->list_array[j]);
 }
 void gl_edge_add(graph_list* g, int i, int j) {
@@ -100,4 +100,40 @@ void gl_multi_edge_add(graph_list* g, int i, int j) {
 void gl_multi_edge_remove(graph_list* g, int i, int j) {
     g->list_array[i] = il_s_remove_once(j, g->list_array[i]);
     g->list_array[j] = il_s_remove_once(i, g->list_array[j]);
+}
+
+int gl_vertex_degree(const graph_list* g, int i) {
+    assert(i < g->n);
+    return il_length(g->list_array[i]);
+}
+
+
+
+
+graph_list* graph_matrix_to_list(const graph_matrix *gm) {
+    int i, j;
+    graph_list *gl = gl_alloc(gm->n);
+    for (i = 0; i < gm->n; i++) {
+        for (j = i; j < gm->n; j++) {
+            if (gm_edge(gm, i, j))
+                gl_multi_edge_add(gl, i, j);
+        }
+    }
+    return gl;
+}
+
+graph_matrix* graph_list_to_matrix(const graph_list *gl) {
+    int i;
+    int_list *p;
+    graph_matrix *gm = gm_init_zero(gm_alloc(gl->n));
+    for (i = 0; i < gl->n; i++) {
+        for (p = gl->list_array[i]; p != NULL; p = p->next) {
+            gm_multi_edge_add(gm, i, p->x);
+        }
+    }
+    /* every edge is added twice */
+    for (i = 0; i < gm->n * gm->n; i++) {
+        gm->matrix[i] /= 2;
+    }
+    return gm;
 }
