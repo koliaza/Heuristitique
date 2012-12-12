@@ -77,10 +77,15 @@ Our goal here is to show that the subset of problems solved in polynomial
 \end_inset
 
 ).
- When WL behaves polynomially, it does so by either finding that two vertices
- must be image of one another by the isomorphism (if it exists) or by finding
- a negative certificate.
- We must show those three properties : 
+ Two cases allow WL to reduce the number of possibilities and hence have
+ a polynomial runtime : the first is when the colorings of G and G' are
+ incompatible, and the second when there is a color shared by an unique
+ vertex in each graph.
+ 
+\end_layout
+
+\begin_layout Standard
+We must show three properties : 
 \end_layout
 
 \begin_layout Itemize
@@ -109,7 +114,7 @@ The first is immediate, because the operations we use are invariant through
  unique for the two graphs (it being injective), so if there is exactly
  one vertex in each graph colored by C, then the isomorphism must assign
  one to the other (problems may arise in WL because the coloring is not
- injective).
+ necessarily injective).
  This gives an easy proof of the third depending on the second, because
  the fact that a vertex is colored uniquely in G and G' is implied by the
  fact that it is colored differently from every single other vertex.
@@ -118,27 +123,32 @@ The first is immediate, because the operations we use are invariant through
 
 \begin_layout Standard
 We shall proceed by induction to prove that if EWL colors a vertice in G
- and another in G' in different colors, then PN also allows us to differentiate
- those two vertices.
- At the first run of the coloring, every vertex is colored by its degree
+ and another in G' in different colorsat run k, then PN also allows us to
+ differentiate those two vertices.
+ 
+\end_layout
+
+\begin_layout Standard
+At the first run of the coloring, every vertex is colored by its degree
  so it is trivially true.
  
 \end_layout
 
 \begin_layout Standard
-Now let us suppose that the property holds at run n, and show that it holds
- at run n+1 : 
+Now let us suppose that the property holds at run k, and show that it holds
+ at run k+1 : 
 \end_layout
 
 \begin_layout Standard
 Consider two vertices V and W (one per graph) that had the same color for
- all previous runs, but which are colored differently at run n+1.
+ all previous runs, but which are colored differently at run k+1.
  Then their neighbourhoods are incompatible, which means that the multiset
  of colors is not the same, so there is a color c such that there is one
  more vertex of color c in N(V) than in N(W).
- However, those colors were attributed at run n, so it means that when comparing
- the PN lists of neighbours of V and W, those lists will be incompatible.
- Hence V and can't be linked in PN, which ends the induction.
+ However, those colors were attributed at run k, so it means that when comparing
+ the lists of neighbours of V and W in PN, those lists will be incompatible
+ by hypothesis.
+ Hence V and W can't be linked in PN, which ends the induction.
  
 \end_layout
 
