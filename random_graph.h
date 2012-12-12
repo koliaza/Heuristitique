@@ -12,4 +12,7 @@ graph_matrix* erdos_renyi_gnm(int n, int m);
 graph_matrix* random_k_regular(int n, int k);
 graph_matrix* random_k_regular_multi(int n, int k);
 
+/* Random permutation of the vertices of a graph */
+graph_matrix* random_isomorphic(graph_matrix *g);
+
 #endif

@@ -12,6 +12,10 @@ int_list* il_cons(int x, int_list *l) {
     return r;
 }
 
+int_list* il_singleton(int x) {
+    return il_cons(x, NULL);
+}
+
 void il_free(int_list *l) {
     int_list *p, *q;
     p = l;
