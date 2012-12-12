@@ -112,7 +112,7 @@ The problem considered is the graph isomorphism (GI) problem : given two
 , can one compute an isomorphism between them.
  The original goal was to implement the Weisfeiler-Lehman heuristic in the
  C programming language, but we chose to implement our own heuristic (named
- PN for path-neighbour) to test its performance.
+ PN for Path-Neighbour) to test its performance.
  The main goal was to find an heuristic which would behave polynomially
  on the a bigger subset of problems, even if the polynomial degree increases.
  
@@ -300,11 +300,7 @@ Let
 \end_inset
 
  for k between 1 and n PN(x), and compute an array containing PN(x) for
- each x, obtaining the 
-\begin_inset Formula $n\times n$
-\end_inset
-
- matrix PN.
+ each x, obtaining the PN arrays.
  
 \end_layout
 
@@ -339,7 +335,7 @@ Comparison of the PN-arrays
 \end_layout
 
 \begin_layout Enumerate
-Comparison of the neighbours of compatible vertices.
+Comparison of the neighbours of compatible vertices
 \end_layout
 
 \begin_layout Enumerate
@@ -367,7 +363,7 @@ We keep the list of image-possibilities for all vertices in a matrix form.
  The goal of the PN matrix is to separate the vertices in as many classes
  as possible, but bruteforce can sometimes be used earlier, as is the case
  in the primary test phase.
- However, when one computes the PN matrix, it is not always enough, and
+ However, when one computes the PN arrays, it is not always enough, and
  so we use a technique from WL and compare the immediate neighbourhood of
  each vertex to see if it is compatible with all of its images, to prune
  some more.
@@ -397,27 +393,15 @@ possibilities and each take at most
 \end_layout
 
 \begin_layout Enumerate
-Check for equality between the matrices (runs in 
-\begin_inset Formula $O(m)$
-\end_inset
-
-)
+Check for equality between the matrices
 \end_layout
 
 \begin_layout Enumerate
-Check size and number of connected components (in 
-\begin_inset Formula $O(m)$
-\end_inset
-
-)
+Check size and number of connected components
 \end_layout
 
 \begin_layout Enumerate
-Compare the list of degrees (in 
-\begin_inset Formula $O(m+n*log(n))$
-\end_inset
-
- ) and record the number of possibilities.
+Compare the list of degrees and record the number of possibilities
 \end_layout
 
 \begin_layout Enumerate
@@ -425,20 +409,11 @@ When the number of possibilities is small (
 \begin_inset Formula $O(n^{2})$
 \end_inset
 
-) use bruteforce (in 
-\begin_inset Formula $O(n^{2}*m)$
-\end_inset
-
- ).
+) use bruteforce
 \end_layout
 
 \begin_layout Enumerate
-Still check for simple transpositions when it is not the case ( also in
- 
-\begin_inset Formula $O(n^{2}*m)$
-\end_inset
-
- )
+Still check for simple transpositions when it is not the case
 \end_layout
 
 \begin_layout Subsubsection
@@ -555,8 +530,19 @@ To generate two isomorphic graphs is actually really easy : as two graphs
 Benchmark
 \end_layout
 
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Comparison with Weisfeiler-Lehman
+\end_layout
+
+\begin_layout Subsection
+Proof
 \end_layout
 
 \begin_layout Standard
@@ -568,68 +554,239 @@ Our goal here is to show that the subset of problems solved in polynomial
 \end_inset
 
  but are instead an injective function of the vertex's previous color and
- the multiset of its neighbour's colors.
- When WL behaves polynomially, it does so by either finding that two vertices
- must be image of one another by the isomorphism (if it exists) or by finding
- a negative certificate.
- We must show those three properties : 
+ the multiset of its neighbour's colors into the set of colors (which is
+ not anymore included in 
+\begin_inset Formula $[1;n]$
+\end_inset
+
+).
+ Two cases allow WL to reduce the number of possibilities and hence have
+ a polynomial runtime : the first is when the colorings of G and G' are
+ incompatible, and the second when there is a color shared by an unique
+ vertex in each graph.
+ 
+\end_layout
+
+\begin_layout Standard
+We must show three properties : 
+\end_layout
+
+\begin_layout Itemize
+When the graphs are isomorphic, WL, EWL and PN compute the isomorphism,
+ and produce a negative certificate in the other case (correctness)
+\end_layout
+
+\begin_layout Itemize
+When WL finds two incompatible coloring, then so does EWL, and PN also gives
+ a negative certificate (polynomial negative certificate)
 \end_layout
 
 \begin_layout Itemize
 When WL colors a vertex in an unique color in both graphs, then EWL does
  the same, and our algorithm also recognizes that those two vertices must
- be linked if the graphs are isomorphic (polynomial search of isomorphism)
-\end_layout
-
-\begin_layout Itemize
-When WL finds two incompatible coloring, then so does EWL, and our algorithm
- also gives a negative certificate (polynomial negative certificate)
-\end_layout
-
-\begin_layout Itemize
-When the graphs are isomorphic, WL, EWL and our heuristic compute the isomorphis
-m (correctness)
+ be linked if the graphs are isomorphic (polynomial isomorphism)
 \end_layout
 
 \begin_layout Standard
-The third is immediate, because the operations we use are invariant through
+The first is immediate, because the operations we use are invariant through
  permutations of the vertices, hence if the two graphs are isomorphic it
  might take exponential time but will surely end.
  The two other properties trivially hold for extended WL, and we must show
- that it implies that they hold for our algorithm.
- 
+ that it implies that they hold for PN.
+ However, there is an advantage of EWL over WL, because the coloring is
+ unique for the two graphs (it being injective), so if there is exactly
+ one vertex in each graph colored by C, then the isomorphism must assign
+ one to the other (problems may arise in WL because the coloring is not
+ necessarily injective).
+ This gives an easy proof of the third depending on the second, because
+ the fact that a vertex is colored uniquely in G and G' is implied by the
+ fact that it is colored differently from every single other vertex.
+ Hence we must only prove the second property.
 \end_layout
 
 \begin_layout Standard
 We shall proceed by induction to prove that if EWL colors a vertice in G
- and another in G' in different colors, then our PY algorithm also allows
- us to differentiate those two vertices.
- At the first run of the coloring, every vertex is colored by its degree
+ and another in G' in different colorsat run k, then PN also allows us to
+ differentiate those two vertices.
+ 
+\end_layout
+
+\begin_layout Standard
+At the first run of the coloring, every vertex is colored by its degree
  so it is trivially true.
  
 \end_layout
 
 \begin_layout Standard
-Now let us suppose that the property holds at run n, and show that it holds
- at run n+1 : 
+Now let us suppose that the property holds at run k, and show that it holds
+ at run k+1 : 
 \end_layout
 
 \begin_layout Standard
 Consider two vertices V and W (one per graph) that had the same color for
- all previous runs, but which are colored differently at run n+1.
+ all previous runs, but which are colored differently at run k+1.
  Then their neighbourhoods are incompatible, which means that the multiset
  of colors is not the same, so there is a color c such that there is one
  more vertex of color c in N(V) than in N(W).
- However, those colors were attributed at run n, so it means that when comparing
- the PN lists of neighbours of V and W, those lists will be incompatible.
+ However, those colors were attributed at run k, so it means that when comparing
+ the lists of neighbours of V and W in PN, those lists will be incompatible
+ by hypothesis.
  Hence V and W can't be linked in PN, which ends the induction.
  
 \end_layout
 
+\begin_layout Subsection
+Complexity analysis
+\end_layout
+
 \begin_layout Standard
-This also means that if V and W are colored in the same unique color, then
- they are linked if possible ( because they can't be linked to any other
- vertices) so the second property also holds.
+As the GI problem isn't known to be in P, it is not absurd to have a worst
+ running time of 
+\begin_inset Formula $O(n!)$
+\end_inset
+
+.
+ However, we can go into details and see that in most cases the real running
+ time is generally much lower.
+ 
+\end_layout
+
+\begin_layout Standard
+The reading phase takes at least 
+\begin_inset Formula $O(m)$
+\end_inset
+
+, but is implemented in 
+\begin_inset Formula $O(n^{2})$
+\end_inset
+
+ as we use matrices.
+ 
+\end_layout
+
+\begin_layout Standard
+The first test phase consists of a list of at most five tests of increasing
+ time complexity, to quickly solve cases of increasing difficulty.
+ 
+\end_layout
+
+\begin_layout Standard
+The first three tests run in 
+\begin_inset Formula $O(n^{2})$
+\end_inset
+
+ although they could be implemented in 
+\begin_inset Formula $O(m+n*log(n))$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+The two other tests take at most 
+\begin_inset Formula $O(n^{4})$
+\end_inset
+
+ but only 
+\begin_inset Formula $O(n^{2}m)$
+\end_inset
+
+ when run on lists.
+ However, even though this polynomial is of high degree, it does not effectively
+ take as much time because most of the tests fail immediately, hence its
+ presence before PN has an utility.
+ 
+\end_layout
+
+\begin_layout Standard
+The most time-consuming phase is the array generation.
+ It does n multiplications of 
+\begin_inset Formula $n*n$
+\end_inset
+
+ matrices for each graph, which takes 
+\begin_inset Formula $O(n^{4})$
+\end_inset
+
+ and a sort after that (which takes at most 
+\begin_inset Formula $O(n^{2}log(n))$
+\end_inset
+
+).
+ We could have used Strassen to decrease that cost but the overhead on small
+ matrices reduces its interest.
+ However, using lists in case of sparse graphs would not really decrease
+ complexity (except in graphs with very bad expansion properties).
+ 
+\end_layout
+
+\begin_layout Standard
+The next phase is the comparison of the arrays.
+ It takes at most 
+\begin_inset Formula $O(n^{2})$
+\end_inset
+
+, and when we also check compatibility with the neighbours we obtain 
+\begin_inset Formula $O(n^{3})$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+If we haven't found an isomorphism or a negative certificate by then we
+ launch a bruteforce on the remaining possibilities, which at worst runs
+ in 
+\begin_inset Formula $O(n!)$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+A quick analysis of WL gives a higher bound (in polynomial cases) of 
+\begin_inset Formula $O(mn^{2})$
+\end_inset
+
+ when implemented with ajdacency lists although the expected running time
+ is lower.
+ We can then separate the problems in five categories : 
+\end_layout
+
+\begin_layout Enumerate
+The very simple ones that are solved much faster by PN thanks to the primary
+ test phase
+\end_layout
+
+\begin_layout Enumerate
+The medium-easy cases that are solved by PN but not the primary test phase,
+ and where WL is asymptotically better
+\end_layout
+
+\begin_layout Enumerate
+The medium cases that are solved by both PN and WL in polynomial time but
+ in 
+\begin_inset Formula $O(n^{4})$
+\end_inset
+
+ and where they differ only by a constant
+\end_layout
+
+\begin_layout Enumerate
+The medium-hard cases that are solved polynomially by PN but exponentially
+ by WL
+\end_layout
+
+\begin_layout Enumerate
+The hard cases where both algorithms behave exponentially.
+ 
+\end_layout
+
+\begin_layout Standard
+We see that we could improve PN by adding WL between the first test phase
+ and the array generation, but the overhead would once more increase.
  
 \end_layout
 
