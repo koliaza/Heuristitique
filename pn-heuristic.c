@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <assert.h>
+#include <string.h>
 
 #include "graph.h"
 
@@ -46,7 +47,7 @@ int64_t mulp(int64_t x, int64_t y) {
     return ( (xl*yl + mid + hi) % PRIME );
 }
 
-int* matrix_addp(int n, const int64_t *a, const int64_t *b, int64_t *r) {
+int64_t* matrix_addp(int n, const int64_t *a, const int64_t *b, int64_t *r) {
     int i;
     for (i = 0; i < n*n; i++) {
         r[i] = addp(a[i], b[i]);
@@ -54,7 +55,7 @@ int* matrix_addp(int n, const int64_t *a, const int64_t *b, int64_t *r) {
     return r;
 }
 
-int* matrix_mulp(int n, const int64_t *a, const int64_t *b, int64_t *r) {
+int64_t* matrix_mulp(int n, const int64_t *a, const int64_t *b, int64_t *r) {
     int i, j, k;
     int64_t x;
     for (i = 0; i < n; i++) {
@@ -87,29 +88,29 @@ int find_isomorphism(graph_matrix *g_a, graph_matrix *g_b, int *result) {
     int64_t *cur_paths = NULL;
     int *a_eqv_cl_array;
     int_list **b_eqv_cl_list;
-    int n = a->n;
+    int n = g_a->n;
     
     int status = 0;
 
     /** First test phase */
     assert(n != 0);
-    if (b->n != n) return 0;
+    if (g_b->n != n) return 0;
 
     /** Comparison of PN-arrays and partitioning into equivalence classes **/
 
     pn_a = compute_pn_array(g_a);
     pn_b = compute_pn_array(g_b);
 
-    a_eqv_cl = malloc(n*sizeof(int_list*));
-    b_eqv_cl = malloc(n*sizeof(int_list*));
+    a_eqv_cl_array = malloc(n*sizeof(int));
+    b_eqv_cl_list = malloc(n*sizeof(int_list*));
     for (i = 0; i < n; i++) {
         a_eqv_cl_array[i] = 0;
-        b_eqv_cl[i] = NULL;
+        b_eqv_cl_list[i] = NULL;
     }
  
     c = 0; /* c : index of current equiv class */
-    a_eqv_cl[0] = il_cons(pn_a[0]->vertex, NULL);
-    b_eqv_cl[0] = il_cons(pn_b[0]->vertex, NULL);
+    a_eqv_cl_array[pn_a[0]->vertex] = c;
+    b_eqv_cl_list[c] = il_cons(pn_b[i]->vertex, b_eqv_cl_list[c]);
     cur_neighbors = pn_a[0]->neighbors;
     cur_paths     = pn_a[0]->paths;
     if (memcmp(cur_neighbors, pn_b[0]->neighbors, n*sizeof(int)) != 0
@@ -135,22 +136,35 @@ int find_isomorphism(graph_matrix *g_a, graph_matrix *g_b, int *result) {
             cur_paths     = ap;
         }
         a_eqv_cl_array[pn_a[i]->vertex] = c;
-        b_eqv_cl[c] = il_cons(pn_b[i]->vertex, b_eqv_cl[c]);
+        b_eqv_cl_list[c] = il_cons(pn_b[i]->vertex, b_eqv_cl_list[c]);
     }
     c++; /* c = number of equivalence classes */
 
-    status = pn_exhaustive_search(n, c, a_eqv_cl_array,
-                                  b_eqv_cl_list, g_a, g_b);
+    if (result == NULL) {
+        int *temp_array = malloc(n*sizeof(int));
+        status = pn_exhaustive_search(n, c, a_eqv_cl_array,
+                                      b_eqv_cl_list, g_a, g_b,
+                                      temp_array);
+        free(temp_array);
+    } else {
+        status = pn_exhaustive_search(n, c, a_eqv_cl_array,
+                                      b_eqv_cl_list, g_a, g_b,
+                                      result);
+    }
 
 find_isomorphism_exit:
     
     for (i = 0; i < c; i++) {
-        il_free(b_eqv_cl[i]);
+        il_free(b_eqv_cl_list[i]);
     }
     free(a_eqv_cl_array);
     free(b_eqv_cl_list);
-    free_pn_array(pn_a);
-    free_pn_array(pn_b);
+    for (i = 0; i < n; i++) {
+        free(pn_a[i]);
+        free(pn_b[i]);
+    }
+    free(pn_a);
+    free(pn_b);
     
     return status;
 }
@@ -169,8 +183,8 @@ int compare_pn_entries(const void *e1, const void *e2) {
                        pn_entry_vect_size * sizeof(int64_t));
 }
 
-typedef (int64_t*) p_matrix;
-typedef (int*) n_matrix;
+typedef int64_t *p_matrix;
+typedef int *n_matrix;
 
 pn_array compute_pn_array(graph_matrix *g) {
     /** Variable initialisation and allocation **/
@@ -199,7 +213,7 @@ pn_array compute_pn_array(graph_matrix *g) {
             }
         }
         /* update for next iteration */
-        matrix_mulp(n, a, a_pow, tmp);
+        matrix_mulp(n, a64, a_pow, tmp);
         memcpy(a_pow, tmp, mat64size);
     }
     /* we won't need these anymore... */
@@ -209,9 +223,9 @@ pn_array compute_pn_array(graph_matrix *g) {
 
     /** Build the pn_array structure **/
     
-    pn_array = malloc(n*sizeof(pn_entry));
+    pn_array = malloc(n*sizeof(struct pn_entry));
     for (i = 0; i < n; i++) {
-        pn_array[i] = malloc(sizeof(pn_entry));
+        pn_array[i] = malloc(sizeof(struct pn_entry));
         pn_array[i]->vertex = i;
         pn_array[i]->neighbors = malloc(n*sizeof(int));
         pn_array[i]->paths = malloc(n*sizeof(int64_t));
@@ -228,7 +242,7 @@ pn_array compute_pn_array(graph_matrix *g) {
 
     pn_entry_vect_size = n;
     qsort(pn_array, n, sizeof(void*), compare_pn_entries);
-    return pn;
+    return pn_array;
 }
 
 struct choice_stack {
@@ -239,11 +253,45 @@ struct choice_stack {
 };
 
 int pn_exhaustive_search(int n, int c,
-                         int_list **a_eqv_cl, int_list **b_eqv_cl,
-                         graph_matrix *g_a,   graph_matrix *g_b) {
-    int i = 0;
-    struct choice_stack *partial_choices = NULL;
-    while (i < n) {
-        /* TODO */
+                         int *a_eqv_cl_array, int_list **b_eqv_cl_list,
+                         graph_matrix *g_a,   graph_matrix *g_b,
+                         int *result) {
+    /* the result array is used to store the tentative partial isomorphisms */
+    int v_a = -1;
+    int i;
+    int partial_ok = 1;
+    struct choice_stack *cs = NULL;
+    struct choice_stack *tmp = NULL;
+    for (;;) {
+        /* if everything goes well, try one more vertex */
+        if (partial_ok) {
+            v_a++;
+            /* stack push */
+            tmp = cs;
+            cs = malloc(sizeof(struct choice_stack));
+            cs->a_vertex = v_a;
+            cs->b_untested = b_eqv_cl_list[a_eqv_cl_array[v_a]];
+            cs->rest = tmp;
+        }
+        /* backtrack in case of failure */
+        while (cs->b_untested == NULL) {
+            tmp = cs;
+            cs = cs->rest;
+            free(tmp);
+            if (cs == NULL) return 0;
+        }
+        /* try next possibility */
+        result[v_a] = cs->b_untested->x;
+        cs->b_untested = cs->b_untested->next;
+        
+        partial_ok = 1;
+        for (i = 0; i < v_a; i++) {
+            if (gm_edge(g_a, i, v_a) != gm_edge(g_b, result[i], result[v_a])) {
+                partial_ok = 0;
+                break;
+            }
+        }
+
+        if (v_a == n-1 && partial_ok) return 1;
     }
 }

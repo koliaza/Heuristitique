@@ -91,13 +91,18 @@ graph_matrix* random_k_regular_multi(int n, int k) {
 }
 
 graph_matrix* random_isomorphic(graph_matrix *g) {
+    int i;
     int *t;
     int *a;
+    graph_matrix *r;
     t = malloc(g->n * sizeof(int));
-    for (i = 0; i < n; i++)
+    for (i = 0; i < g->n; i++)
         t[i] = i;
     shuffle(g->n, t);
-    a = matrix_basis_perm(g->n, g->matrix, t, malloc(n*n*sizeof(int)));
+    a = matrix_basis_perm(g->n, g->matrix, t, malloc(g->n*g->n*sizeof(int)));
     free(t);
-    return a;
+    r = malloc(sizeof(graph_matrix));
+    r->n = g->n;
+    r->matrix = a;
+    return r;
 }

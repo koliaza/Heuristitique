@@ -3,21 +3,24 @@
 
 #include <stdint.h>
 
+#include "graph.h"
+
 /* idea : add a hash */
 struct pn_entry {
     int vertex;
     int *neighbors;
     int64_t *paths; /* modulo a prime number */
 };
-typedef (struct pn_entry*) pn_array;
+typedef struct pn_entry **pn_array;
 
 /* returns a sorted pn_array */
-int* compute_pn_array(graph_matrix *a);
+pn_array compute_pn_array(graph_matrix *a);
 
 /* uses backtracking */
 int pn_exhaustive_search(int n, int c,
-                         int_list **a_eqv_cl, int_list **b_eqv_cl,
-                         graph_matrix *g_a,   graph_matrix *g_b);
+                         int *a_eqv_cl_array, int_list **b_eqv_cl_list,
+                         graph_matrix *g_a,   graph_matrix *g_b,
+                         int *result);
 
 /* return 0 if the graphs are not isomorphic, 1 if they are
    in the latter case, the result array will be filled with
