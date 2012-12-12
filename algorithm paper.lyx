@@ -634,6 +634,29 @@ This also means that if V and W are colored in the same unique color, then
 \end_layout
 
 \begin_layout Standard
+Consider that EWL computes the colors of V and W and that they are not compatibl
+e.
+ We must show that they can't be compatible in PN.
+ 
+\end_layout
+
+\begin_layout Standard
+We proceed by induction.
+ The initialisation is easy : apart from the case where everyone is colored
+ in the same way, the first run which computes the degrees of all vertices
+ is trivially handled as well by PN.
+ 
+\end_layout
+
+\begin_layout Standard
+Let us suppose that 
+\begin_inset Formula $\forall V\in G,\forall W\in G'$
+\end_inset
+
+, if the color of V and W
+\end_layout
+
+\begin_layout Standard
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
 bibfiles "bibliography algorithms"

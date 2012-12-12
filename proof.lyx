@@ -1,0 +1,146 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\rightmargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+Our goal here is to show that the subset of problems solved in polynomial
+ time by WL is strictly included in the subset solved by our heuristic.
+ We shall consider an extended version of WL (EWL) to facilitate the proof,
+ where colors aren't redistributed among 
+\begin_inset Formula $[1;n]$
+\end_inset
+
+ but are instead an injective function of the vertex's previous color and
+ the multiset of its neighbour's colors into the set of colors (which is
+ not anymore included in 
+\begin_inset Formula $[1;n]$
+\end_inset
+
+).
+ When WL behaves polynomially, it does so by either finding that two vertices
+ must be image of one another by the isomorphism (if it exists) or by finding
+ a negative certificate.
+ We must show those three properties : 
+\end_layout
+
+\begin_layout Itemize
+When the graphs are isomorphic, WL, EWL and PN compute the isomorphism,
+ and produce a negative certificate in the other case (correctness)
+\end_layout
+
+\begin_layout Itemize
+When WL finds two incompatible coloring, then so does EWL, and PN also gives
+ a negative certificate (polynomial negative certificate)
+\end_layout
+
+\begin_layout Itemize
+When WL colors a vertex in an unique color in both graphs, then EWL does
+ the same, and our algorithm also recognizes that those two vertices must
+ be linked if the graphs are isomorphic (polynomial isomorphism)
+\end_layout
+
+\begin_layout Standard
+The first is immediate, because the operations we use are invariant through
+ permutations of the vertices, hence if the two graphs are isomorphic it
+ might take exponential time but will surely end.
+ The two other properties trivially hold for extended WL, and we must show
+ that it implies that they hold for PN.
+ However, there is an advantage of EWL over WL, because the coloring is
+ unique for the two graphs (it being injective), so if there is exactly
+ one vertex in each graph colored by C, then the isomorphism must assign
+ one to the other (problems may arise in WL because the coloring is not
+ injective).
+ This gives an easy proof of the third depending on the second, because
+ the fact that a vertex is colored uniquely in G and G' is implied by the
+ fact that it is colored differently from every single other vertex.
+ Hence we must only prove the second property.
+\end_layout
+
+\begin_layout Standard
+We shall proceed by induction to prove that if EWL colors a vertice in G
+ and another in G' in different colors, then PN also allows us to differentiate
+ those two vertices.
+ At the first run of the coloring, every vertex is colored by its degree
+ so it is trivially true.
+ 
+\end_layout
+
+\begin_layout Standard
+Now let us suppose that the property holds at run n, and show that it holds
+ at run n+1 : 
+\end_layout
+
+\begin_layout Standard
+Consider two vertices V and W (one per graph) that had the same color for
+ all previous runs, but which are colored differently at run n+1.
+ Then their neighbourhoods are incompatible, which means that the multiset
+ of colors is not the same, so there is a color c such that there is one
+ more vertex of color c in N(V) than in N(W).
+ However, those colors were attributed at run n, so it means that when comparing
+ the PN lists of neighbours of V and W, those lists will be incompatible.
+ Hence V and can't be linked in PN, which ends the induction.
+ 
+\end_layout
+
+\end_body
+\end_document
