@@ -1,0 +1,374 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman palatino
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\rightmargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+An heuristic for graph isomorphisms
+\end_layout
+
+\begin_layout Author
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+Nguy
+\backslash
+~{
+\backslash
+^e}n Lê Thành D
+\backslash
+~ung 
+\backslash
+and  Blanchard Nicolas Koliaza
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Foreword 
+\end_layout
+
+\begin_layout Standard
+The problem considered is the graph isomorphism (GI) problem : given two
+ graphs 
+\begin_inset Formula $G$
+\end_inset
+
+ and 
+\begin_inset Formula $G'$
+\end_inset
+
+, can one compute an isomorphism between them.
+ We implement our own heuristic called PN for Path-Neighbour.
+ This is the short version of the report, and more details can be found
+ in the complete version.
+\end_layout
+
+\begin_layout Section
+The Heuristics
+\end_layout
+
+\begin_layout Subsection
+The Weisfeiler-Lehman heuristic
+\end_layout
+
+\begin_layout Standard
+The original Weisfeiler-Lehman (WL) heuristic works by coloring the edges
+ of a graph according to the following rules :
+\end_layout
+
+\begin_layout Itemize
+We begin with a coloring that assigns to every vertex the same color (this
+ is the 1-dimensional version).
+\end_layout
+
+\begin_layout Itemize
+At each pass, the color of each vertex is determined by the number of neighbours
+ of color c for each c.
+\end_layout
+
+\begin_layout Itemize
+After at most n passes, the colors don't change anymore.
+\end_layout
+
+\begin_layout Standard
+Two isomorphic graphs admit the same coloring, but the converse does not
+ always hold: k-regular graphs for example are pathological cases which
+ take exponential time.
+\end_layout
+
+\begin_layout Subsection
+The PN heuristic
+\end_layout
+
+\begin_layout Subsubsection
+The idea
+\end_layout
+
+\begin_layout Standard
+PN is based on the following property : 
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $N_{k}(x)$
+\end_inset
+
+ be the number of neighbours at distance exactly k from x, and 
+\begin_inset Formula $P_{k}(x)$
+\end_inset
+
+ the number of paths of length k starting from x, then if 
+\begin_inset Formula $f$
+\end_inset
+
+ is an isomorphism between 
+\begin_inset Formula $G$
+\end_inset
+
+ and 
+\begin_inset Formula $G'$
+\end_inset
+
+ , 
+\begin_inset Formula $N_{k}(x)=N_{k}(f(x))$
+\end_inset
+
+ and 
+\begin_inset Formula $P_{k}(x)=P_{k}(f(x))$
+\end_inset
+
+.
+ Thus, by computing the different 
+\begin_inset Formula $N_{x}$
+\end_inset
+
+ and 
+\begin_inset Formula $P_{x}$
+\end_inset
+
+ we can prune the search tree and limit the possibilities.
+ We name the array of couples 
+\begin_inset Formula $P_{k}(x),N_{k}(x)$
+\end_inset
+
+ for k between 1 and n PN(x), and compute an array containing PN(x) for
+ each x, obtaining the PN arrays.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+Structure of the algorithm
+\end_layout
+
+\begin_layout Standard
+The algorithm we use actually incorporates multiple testing phases to quickly
+ eliminate easy cases.
+ It can be decomposed in the following steps : 
+\end_layout
+
+\begin_layout Enumerate
+Input parsing and choice of data structure
+\end_layout
+
+\begin_layout Enumerate
+Primary test phase (a collection of fast tests to quickly eliminate easy
+ cases)
+\end_layout
+
+\begin_layout Enumerate
+Construction and sorting of each PN-array 
+\end_layout
+
+\begin_layout Enumerate
+Comparison of the PN-arrays using the neighbours
+\end_layout
+
+\begin_layout Enumerate
+If possible construction of an isomorphism by refined bruteforce
+\end_layout
+
+\begin_layout Subsection
+Tests and Benchmark
+\end_layout
+
+\begin_layout Standard
+We have four test generation programs, to create G(n,p) graphs, G(n,m) graphs,
+ k-regular graphs and to create an isomorphic copy of any graph.
+ 
+\end_layout
+
+\begin_layout Section
+Comparison with Weisfeiler-Lehman
+\end_layout
+
+\begin_layout Subsection
+Proof
+\end_layout
+
+\begin_layout Standard
+We can show that PN behaves polynomially on a subset of problems that strictly
+ includes the subset where WL behaves polynomially.
+ We consider an extended version of WL which is very similar and facilitates
+ the analysis (even though it is much less efficient in practice).
+ The proof is done by considering the cases when WL prunes efficiently the
+ search tree and by showing by induction that PN does the same in those
+ cases.
+ 
+\end_layout
+
+\begin_layout Subsection
+Complexity analysis
+\end_layout
+
+\begin_layout Standard
+As the GI problem isn't known to be in P, it is not absurd to have a worst
+ running time of 
+\begin_inset Formula $O(n!)$
+\end_inset
+
+.
+ However the running time is generally lower, and PN often takes 
+\begin_inset Formula $O(n^{4})$
+\end_inset
+
+.
+ With the primary test phase, it can go down to 
+\begin_inset Formula $O(n^{2}m)$
+\end_inset
+
+ or even 
+\begin_inset Formula $O(m+n*log(n))$
+\end_inset
+
+ in some cases.
+ This means that WL (which can run in 
+\begin_inset Formula $O(nm)$
+\end_inset
+
+) is often more efficient, but PN is safer (the pathological cases are not
+ as frequent).
+\end_layout
+
+\begin_layout Section
+Implementation and Optimization
+\end_layout
+
+\begin_layout Subsection
+Data Structures
+\end_layout
+
+\begin_layout Standard
+The choice of data structures varies between adjacency matrix and list,
+ and sometimes both, and allows us to take advantage of faster algorithms
+ on sparse graphs using lists, while allowing us to know in O(1) if two
+ vertices are linked.
+ 
+\end_layout
+
+\begin_layout Standard
+The construction of the PN-array is generally the most time-expensive task,
+ it is mostly done by multiplication of the adjacency matrix.
+ Sorting the PN-array is easily done with a heapsort.
+ 
+\end_layout
+
+\begin_layout Standard
+The construction of the isomorphism is done by trying to assign to an x
+ an y such that
+\begin_inset Formula $N(x)=N(y)$
+\end_inset
+
+ and backtracking when unsuccessful.
+ 
+\end_layout
+
+\begin_layout Subsection
+Function Optimization
+\end_layout
+
+\begin_layout Standard
+As with many graph algorithms, PN can be improved by using adjacency lists
+ in the case of sparse graphs.
+ However, that seldom changes the asymptotic complexity, as the PN-array
+ generation can only benefit from it in case of graphs with very poor expansion
+ properties.
+ The list representation is mostly used in the primary test phase, where
+ it allows us to have tests in 
+\begin_inset Formula $O(m)$
+\end_inset
+
+ instead of 
+\begin_inset Formula $O(n^{2})$
+\end_inset
+
+.
+ Optimization on the matrix operations cannot really be done in practice
+ as Strassen's algorithm has no interest on the matrix size we generally
+ consider.
+ However we took care of memory locality in their representation, which
+ might improve the performance in practice.
+ 
+\end_layout
+
+\begin_layout Subsection
+Parallelism
+\end_layout
+
+\begin_layout Standard
+The advantage of the PN-arrays is that they can be generated in a completely
+ independent fashion, and so are easy to parallelize.
+ By default we create a different thread for each graph, which gives a speed-up
+ ratio close to 2 in the basic case, but that can grow up to the number
+ of cores when launched on a set of graphs.
+ This is an advantage of PN over WL as the threads do not have to communicate,
+ while the latter has to do some comparisons between each coloring at each
+ run, requiring constant interaction between threads.
+\end_layout
+
+\end_body
+\end_document

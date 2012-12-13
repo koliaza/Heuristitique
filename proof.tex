@@ -1,0 +1,60 @@
+%% LyX 2.0.5 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,lmargin=2cm,rmargin=2cm}
+\begin{document}
+Our goal here is to show that the subset of problems solved in polynomial
+time by WL is strictly included in the subset solved by our heuristic.
+We shall consider an extended version of WL (EWL) to facilitate the
+proof, where colors aren't redistributed among $[1;n]$ but are instead
+an injective function of the vertex's previous color and the multiset
+of its neighbour's colors into the set of colors (which is not anymore
+included in $[1;n]$). Two cases allow WL to reduce the number of
+possibilities and hence have a polynomial runtime : the first is when
+the colorings of G and G' are incompatible, and the second when there
+is a color shared by an unique vertex in each graph. 
+
+We must show three properties : 
+\begin{itemize}
+\item When the graphs are isomorphic, WL, EWL and PN compute the isomorphism,
+and produce a negative certificate in the other case (correctness)
+\item When WL finds two incompatible coloring, then so does EWL, and PN
+also gives a negative certificate (polynomial negative certificate)
+\item When WL colors a vertex in an unique color in both graphs, then EWL
+does the same, and our algorithm also recognizes that those two vertices
+must be linked if the graphs are isomorphic (polynomial isomorphism)
+\end{itemize}
+The first is immediate, because the operations we use are invariant
+through permutations of the vertices, hence if the two graphs are
+isomorphic it might take exponential time but will surely end. The
+two other properties trivially hold for extended WL, and we must show
+that it implies that they hold for PN. However, there is an advantage
+of EWL over WL, because the coloring is unique for the two graphs
+(it being injective), so if there is exactly one vertex in each graph
+colored by C, then the isomorphism must assign one to the other (problems
+may arise in WL because the coloring is not necessarily injective).
+This gives an easy proof of the third depending on the second, because
+the fact that a vertex is colored uniquely in G and G' is implied
+by the fact that it is colored differently from every single other
+vertex. Hence we must only prove the second property.
+
+We shall proceed by induction to prove that if EWL colors a vertice
+in G and another in G' in different colors, then PN also allows us
+to differentiate those two vertices. At the first run of the coloring,
+every vertex is colored by its degree so it is trivially true. 
+
+Now let us suppose that the property holds at run n, and show that
+it holds at run n+1 : 
+
+Consider two vertices V and W (one per graph) that had the same color
+for all previous runs, but which are colored differently at run n+1.
+Then their neighbourhoods are incompatible, which means that the multiset
+of colors is not the same, so there is a color c such that there is
+one more vertex of color c in N(V) than in N(W). However, those colors
+were attributed at run n, so it means that when comparing the PN lists
+of neighbours of V and W, those lists will be incompatible by hypothesis.
+Hence V and W can't be linked in PN, which ends the induction. 
+\end{document}

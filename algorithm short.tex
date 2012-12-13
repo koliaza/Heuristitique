@@ -1,0 +1,149 @@
+%% LyX 2.0.5 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass{article}
+\usepackage{mathpazo}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,lmargin=2cm,rmargin=2cm}
+\begin{document}
+
+\title{An heuristic for graph isomorphisms}
+
+
+\author{Nguy\~{\^e}n Lê Thành D\~ung \and  Blanchard Nicolas Koliaza}
+
+\maketitle
+
+\section*{Foreword }
+
+The problem considered is the graph isomorphism (GI) problem : given
+two graphs $G$ and $G'$, can one compute an isomorphism between
+them. We implement our own heuristic called PN for Path-Neighbour.
+This is the short version of the report, and more details can be found
+in the complete version.
+
+
+\section{The Heuristics}
+
+
+\subsection{The Weisfeiler-Lehman heuristic}
+
+The original Weisfeiler-Lehman (WL) heuristic works by coloring the
+edges of a graph according to the following rules :
+\begin{itemize}
+\item We begin with a coloring that assigns to every vertex the same color
+(this is the 1-dimensional version).
+\item At each pass, the color of each vertex is determined by the number
+of neighbours of color c for each c.
+\item After at most n passes, the colors don't change anymore.
+\end{itemize}
+Two isomorphic graphs admit the same coloring, but the converse does
+not always hold: k-regular graphs for example are pathological cases
+which take exponential time.
+
+
+\subsection{The PN heuristic}
+
+
+\subsubsection{The idea}
+
+PN is based on the following property : 
+
+Let $N_{k}(x)$ be the number of neighbours at distance exactly k
+from x, and $P_{k}(x)$ the number of paths of length k starting from
+x, then if $f$ is an isomorphism between $G$ and $G'$ , $N_{k}(x)=N_{k}(f(x))$
+and $P_{k}(x)=P_{k}(f(x))$. Thus, by computing the different $N_{x}$
+and $P_{x}$ we can prune the search tree and limit the possibilities.
+We name the array of couples $P_{k}(x),N_{k}(x)$ for k between 1
+and n PN(x), and compute an array containing PN(x) for each x, obtaining
+the PN arrays. 
+
+
+\subsubsection{Structure of the algorithm}
+
+The algorithm we use actually incorporates multiple testing phases
+to quickly eliminate easy cases. It can be decomposed in the following
+steps : 
+\begin{enumerate}
+\item Input parsing and choice of data structure
+\item Primary test phase (a collection of fast tests to quickly eliminate
+easy cases)
+\item Construction and sorting of each PN-array 
+\item Comparison of the PN-arrays using the neighbours
+\item If possible construction of an isomorphism by refined bruteforce
+\end{enumerate}
+
+\subsection{Tests and Benchmark}
+
+We have four test generation programs, to create G(n,p) graphs, G(n,m)
+graphs, k-regular graphs and to create an isomorphic copy of any graph. 
+
+
+\section{Comparison with Weisfeiler-Lehman}
+
+
+\subsection{Proof}
+
+We can show that PN behaves polynomially on a subset of problems that
+strictly includes the subset where WL behaves polynomially. We consider
+an extended version of WL which is very similar and facilitates the
+analysis (even though it is much less efficient in practice). The
+proof is done by considering the cases when WL prunes efficiently
+the search tree and by showing by induction that PN does the same
+in those cases. 
+
+
+\subsection{Complexity analysis}
+
+As the GI problem isn't known to be in P, it is not absurd to have
+a worst running time of $O(n!)$. However the running time is generally
+lower, and PN often takes $O(n^{4})$. With the primary test phase,
+it can go down to $O(n^{2}m)$ or even $O(m+n*log(n))$ in some cases.
+This means that WL (which can run in $O(nm)$) is often more efficient,
+but PN is safer (the pathological cases are not as frequent).
+
+
+\section{Implementation and Optimization}
+
+
+\subsection{Data Structures}
+
+The choice of data structures varies between adjacency matrix and
+list, and sometimes both, and allows us to take advantage of faster
+algorithms on sparse graphs using lists, while allowing us to know
+in O(1) if two vertices are linked. 
+
+The construction of the PN-array is generally the most time-expensive
+task, it is mostly done by multiplication of the adjacency matrix.
+Sorting the PN-array is easily done with a heapsort. 
+
+The construction of the isomorphism is done by trying to assign to
+an x an y such that$N(x)=N(y)$ and backtracking when unsuccessful. 
+
+
+\subsection{Function Optimization}
+
+As with many graph algorithms, PN can be improved by using adjacency
+lists in the case of sparse graphs. However, that seldom changes the
+asymptotic complexity, as the PN-array generation can only benefit
+from it in case of graphs with very poor expansion properties. The
+list representation is mostly used in the primary test phase, where
+it allows us to have tests in $O(m)$ instead of $O(n^{2})$. Optimization
+on the matrix operations cannot really be done in practice as Strassen's
+algorithm has no interest on the matrix size we generally consider.
+However we took care of memory locality in their representation, which
+might improve the performance in practice. 
+
+
+\subsection{Parallelism}
+
+The advantage of the PN-arrays is that they can be generated in a
+completely independent fashion, and so are easy to parallelize. By
+default we create a different thread for each graph, which gives a
+speed-up ratio close to 2 in the basic case, but that can grow up
+to the number of cores when launched on a set of graphs. This is an
+advantage of PN over WL as the threads do not have to communicate,
+while the latter has to do some comparisons between each coloring
+at each run, requiring constant interaction between threads.
+\end{document}

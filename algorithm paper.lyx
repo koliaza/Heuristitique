@@ -114,12 +114,21 @@ The problem considered is the graph isomorphism (GI) problem : given two
  C programming language, but we chose to implement our own heuristic (named
  PN for Path-Neighbour) to test its performance.
  The main goal was to find an heuristic which would behave polynomially
- on the a bigger subset of problems, even if the polynomial degree increases.
+ on a bigger subset of problems, even if the polynomial degree increases.
  
 \end_layout
 
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
-Algorithmical Considerations
+First Considerations
 \end_layout
 
 \begin_layout Standard
@@ -137,7 +146,7 @@ We adopt the notations of graphs with n vertices and m edges.
 There is a strong link between GI and algebra : finding an isomorphism is
  the same as finding a basis in which the adjacency matrix of G becomes
  that of G'.
- Testing all solutions is equivalent to testing all permutations and a naïve
+ Testing all solutions is equivalent to testing all permutations and a naive
  algorithm would take 
 \begin_inset Formula $n!$
 \end_inset
@@ -245,7 +254,7 @@ These rules actually only produce a certificate of non-isomorphism.
 \end_layout
 
 \begin_layout Subsection
-Another heuristic
+The PN heuristic
 \end_layout
 
 \begin_layout Subsubsection
@@ -315,7 +324,7 @@ The algorithm we use actually incorporates multiple testing phases to quickly
 \end_layout
 
 \begin_layout Enumerate
-Lecture and choice of data structure
+Input parsing and choice of data structure
 \end_layout
 
 \begin_layout Enumerate
@@ -327,7 +336,7 @@ Construction of each PN-array
 \end_layout
 
 \begin_layout Enumerate
-Sorting of each PN-array
+Sorting of the PN-arrays
 \end_layout
 
 \begin_layout Enumerate
@@ -375,8 +384,8 @@ Primary test phase
 \end_layout
 
 \begin_layout Standard
-The problem with the naïve algorithm is that the number of possibilities
- groes exponentially in n, however, when one considerons permutations which
+The problem with the naive algorithm is that the number of possibilities
+ grows exponentially in n, however, when one considers permutations which
  are composed of one transposition, there are at most 
 \begin_inset Formula $n^{2}$
 \end_inset
@@ -414,46 +423,6 @@ When the number of possibilities is small (
 
 \begin_layout Enumerate
 Still check for simple transpositions when it is not the case
-\end_layout
-
-\begin_layout Subsubsection
-Details and optimization
-\end_layout
-
-\begin_layout Standard
-The choice of data structures varies between adjacency matrix and list,
- and sometimes both, and allows us to take advantage of faster algorithms
- on sparse graphs using lists, while allowing us to know in O(1) if two
- vertices are linked.
- 
-\end_layout
-
-\begin_layout Standard
-The construction of the N-array is generally the most time-expensive task,
- it is mostly done by multiplication of the adjacency matrix (or by equivalent
- operations on lists).
- Sorting the N-array is easily done with a heapsort.
- The construction of the isomorphism is done by trying to assign to an x
- an y such that
-\begin_inset Formula $N(x)=N(y)$
-\end_inset
-
- and backtracking when unsuccessfull.
- 
-\end_layout
-
-\begin_layout Standard
-Some code optimizationsmight be added : the construction of N-arrays by
- matrix multiplication can be parallelized easily, and multi-threading could
- be used to do so.
- It can also be used it for sorting the arrays.
- However we didn't use Strassen's algorithm because for the matrix size
- considered (
-\begin_inset Formula $n\le500$
-\end_inset
-
-) the gain is very small and mostly compensated by the overhead.
- 
 \end_layout
 
 \begin_layout Section
@@ -554,7 +523,7 @@ Our goal here is to show that the subset of problems solved in polynomial
 \end_inset
 
  but are instead an injective function of the vertex's previous color and
- the multiset of its neighbour's colors into the set of colors (which is
+ the multiset of its neighbours' colors into the set of colors (which is
  not anymore included in 
 \begin_inset Formula $[1;n]$
 \end_inset
@@ -606,8 +575,8 @@ The first is immediate, because the operations we use are invariant through
 
 \begin_layout Standard
 We shall proceed by induction to prove that if EWL colors a vertice in G
- and another in G' in different colorsat run k, then PN also allows us to
- differentiate those two vertices.
+ and another in G' in different colors at run k, then PN also allows us
+ to differentiate those two vertices.
  
 \end_layout
 
@@ -716,8 +685,6 @@ The most time-consuming phase is the array generation.
 ).
  We could have used Strassen to decrease that cost but the overhead on small
  matrices reduces its interest.
- However, using lists in case of sparse graphs would not really decrease
- complexity (except in graphs with very bad expansion properties).
  
 \end_layout
 
@@ -750,9 +717,9 @@ A quick analysis of WL gives a higher bound (in polynomial cases) of
 \begin_inset Formula $O(mn^{2})$
 \end_inset
 
- when implemented with ajdacency lists although the expected running time
+ when implemented with adjacency lists although the expected running time
  is lower.
- We can then separate the problems in five categories : 
+ We can then separate the problems in four categories : 
 \end_layout
 
 \begin_layout Enumerate
@@ -763,15 +730,6 @@ The very simple ones that are solved much faster by PN thanks to the primary
 \begin_layout Enumerate
 The medium-easy cases that are solved by PN but not the primary test phase,
  and where WL is asymptotically better
-\end_layout
-
-\begin_layout Enumerate
-The medium cases that are solved by both PN and WL in polynomial time but
- in 
-\begin_inset Formula $O(n^{4})$
-\end_inset
-
- and where they differ only by a constant
 \end_layout
 
 \begin_layout Enumerate
@@ -787,7 +745,86 @@ The hard cases where both algorithms behave exponentially.
 \begin_layout Standard
 We see that we could improve PN by adding WL between the first test phase
  and the array generation, but the overhead would once more increase.
+ Also, every information we gather doing initial tests can be used by the
+ following ones, which wouldn't be the case with WL (it would use the previous
+ ones but would have no impact on the following ones).
  
+\end_layout
+
+\begin_layout Section
+Implementation and Optimization
+\end_layout
+
+\begin_layout Subsection
+Data Structures
+\end_layout
+
+\begin_layout Standard
+The choice of data structures varies between adjacency matrix and list,
+ and sometimes both, and allows us to take advantage of faster algorithms
+ on sparse graphs using lists, while allowing us to know in O(1) if two
+ vertices are linked.
+ 
+\end_layout
+
+\begin_layout Standard
+The construction of the PN-array is generally the most time-expensive task,
+ it is mostly done by multiplication of the adjacency matrix.
+ Sorting the PN-array is easily done with a heapsort.
+ 
+\end_layout
+
+\begin_layout Standard
+The construction of the isomorphism is done by trying to assign to an x
+ an y such that
+\begin_inset Formula $N(x)=N(y)$
+\end_inset
+
+ and backtracking when unsuccessful.
+ 
+\end_layout
+
+\begin_layout Subsection
+Function Optimization
+\end_layout
+
+\begin_layout Standard
+As with many graph algorithms, PN can be improved by using adjacency lists
+ in the case of sparse graphs.
+ However, that seldom changes the asymptotic complexity, as the PN-array
+ generation can only benefit from it in case of graphs with very poor expansion
+ properties.
+ The list representation is mostly used in the primary test phase, where
+ it allows us to have tests in 
+\begin_inset Formula $O(m)$
+\end_inset
+
+ instead of 
+\begin_inset Formula $O(n^{2})$
+\end_inset
+
+.
+ Optimization on the matrix operations cannot really be done in practice
+ as Strassen's algorithm has no interest on the matrix size we generally
+ consider.
+ However we took care of memory locality in their representation, which
+ might improve the performance in practice.
+ 
+\end_layout
+
+\begin_layout Subsection
+Parallelism
+\end_layout
+
+\begin_layout Standard
+The advantage of the PN-arrays is that they can be generated in a completely
+ independent fashion, and so are easy to parallelize.
+ By default we create a different thread for each graph, which gives a speed-up
+ ratio close to 2 in the basic case, but that can grow up to the number
+ of cores when launched on a set of graphs.
+ This is an advantage of PN over WL as the threads do not have to communicate,
+ while the latter has to do some comparisons between each coloring at each
+ run, requiring constant interaction between threads.
 \end_layout
 
 \begin_layout Standard
