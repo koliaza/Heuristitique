@@ -109,8 +109,8 @@ int find_isomorphism(graph_matrix *g_a, graph_matrix *g_b, int *result) {
     }
  
     c = 0; /* c : index of current equiv class */
-    a_eqv_cl_array[pn_a[0]->vertex] = c;
-    b_eqv_cl_list[c] = il_cons(pn_b[i]->vertex, b_eqv_cl_list[c]);
+    a_eqv_cl_array[pn_a[0]->vertex] = 0;
+    b_eqv_cl_list[0] = il_singleton(pn_b[0]->vertex);
     cur_neighbors = pn_a[0]->neighbors;
     cur_paths     = pn_a[0]->paths;
     if (memcmp(cur_neighbors, pn_b[0]->neighbors, n*sizeof(int)) != 0
@@ -169,19 +169,23 @@ find_isomorphism_exit:
     return status;
 }
 
-
-/* static global var as implicit parameter
+/* global var as implicit parameter
    to compensate the lack of closures */
 static int pn_entry_vect_size;
-int compare_pn_entries(const void *e1, const void *e2) {
-    int x = memcmp(((struct pn_entry*)e1)->neighbors,
-                   ((struct pn_entry*)e2)->neighbors,
+int compare_pn_entries_aux(const struct pn_entry *e1,
+                           const struct pn_entry *e2) {
+    int x = memcmp(e1->neighbors, e2->neighbors,
                    pn_entry_vect_size * sizeof(int));
     if (x != 0) return x;
-    else return memcmp(((struct pn_entry*)e1)->paths,
-                       ((struct pn_entry*)e2)->paths,
+    else return memcmp(e1->paths, e2->paths,
                        pn_entry_vect_size * sizeof(int64_t));
 }
+int compare_pn_entries(const void *e1, const void *e2) {
+    return compare_pn_entries_aux(*((struct pn_entry**)e1),
+                                  *((struct pn_entry**)e2));
+}
+
+
 
 typedef int64_t *p_matrix;
 typedef int *n_matrix;
