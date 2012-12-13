@@ -107,7 +107,46 @@ int gl_vertex_degree(const graph_list* g, int i) {
     return il_length(g->list_array[i]);
 }
 
+void gl_connected_components_aux(const graph_list *g, int *result,
+                                 int vertex, int *component_counter) {
+    int_list *p;
+    result[vertex] = *component_counter;
+    for (p = g->list_array[vertex]; p != NULL; p = p->next) {
+        if (result[p->x] == -1) {
+            gl_connected_components_aux(g, result, p->x, component_counter);
+        }
+    }
+}
 
+void gl_connected_components(const graph_list *g, int *result) {
+    int i;
+    int component_counter;
+
+    for (i = 0; i < g->n; i++) {
+        result[i] = -1;
+    }
+    
+    i = 0;
+    component_counter = -1;
+    while (i < g->n) {
+        if (result[i] != -1) {
+            i++;
+        } else {
+            component_counter++;
+            gl_connected_components_aux(g, result, i, &component_counter);
+        }
+    }
+}
+
+int gl_equal(const graph_list *g_a, const graph_list *g_b) {
+    int i;
+    if (g_a->n != g_b->n) return 0;
+    for (i = 0; i < g_a->n; i++) {
+        if (!il_equal(g_a->list_array[i], g_b->list_array[i]))
+            return 0;
+    }
+    return 1;
+}
 
 
 graph_list* graph_matrix_to_list(const graph_matrix *gm) {

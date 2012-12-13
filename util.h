@@ -14,6 +14,7 @@ int_list* il_singleton(int x);
 /* recursively free all elements */
 void il_free(int_list *l);
 int il_length(const int_list *l);
+int il_equal(const int_list *l1, const int_list *l2);
 
 /* These functions only work correctly on __sorted__ lists,
    and they are __destructive__ */

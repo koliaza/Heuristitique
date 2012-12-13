@@ -25,6 +25,8 @@ void gm_multi_edge_remove(graph_matrix* g, int i, int j);
 
 int gm_vertex_degree(const graph_matrix* g, int i);
 
+
+
 typedef struct graph_list graph_list;
 struct graph_list {
     int n;
@@ -42,6 +44,10 @@ void gl_multi_edge_add(graph_list* g, int i, int j);
 void gl_multi_edge_remove(graph_list* g, int i, int j);
 
 int gl_vertex_degree(const graph_list* g, int i);
+void gl_connected_components(const graph_list *g, int *result);
+/* checks structural equality of the representation of the graph */
+int gl_equal(const graph_list *g_a, const graph_list *g_b);
+
 
 
 graph_list* graph_matrix_to_list(const graph_matrix *gm);

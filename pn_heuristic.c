@@ -7,23 +7,48 @@
 #include "graph.h"
 #include "matrix_mod.h"
 
+int pn_heuristic(int n, graph_matrix *g_a, graph_matrix *g_b, int *result);
 
-/*** The actual PN-heuristic ***/
+int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
+    int n;
+    int i;
 
-int find_isomorphism(graph_matrix *g_a, graph_matrix *g_b, int *result) {
+    /** First tests **/
+
+    n = g_a->n;
+    assert(n != 0);
+    if (n != g_b->n) return 0;
+
+    if (gl_equal(g_a, g_b)) {
+        for (i = 0; i < n; i++) {
+            result[i] = i;
+        }
+        return 1;
+    }
+
+    /** When the first tests are non-conclusive,
+        use the core PN algorithm **/
+
+    graph_matrix *g_a_mat = graph_list_to_matrix(g_a);
+    graph_matrix *g_b_mat = graph_list_to_matrix(g_b);
+    
+    int status = pn_heuristic(n, g_a_mat, g_b_mat, result);
+
+    gm_free(g_a_mat);
+    gm_free(g_b_mat);
+
+    return status;
+}
+
+int pn_heuristic(int n, graph_matrix *g_a, graph_matrix *g_b, int *result) {
     int i, c;
     pn_array pn_a, pn_b;
     int *cur_neighbors = NULL;
     int64_t *cur_paths = NULL;
     int *a_eqv_cl_array;
     int_list **b_eqv_cl_list;
-    int n = g_a->n;
     
     int status = 0;
-
-    /** First test phase */
-    assert(n != 0);
-    if (g_b->n != n) return 0;
 
     /** Comparison of PN-arrays and partitioning into equivalence classes **/
 
@@ -44,7 +69,7 @@ int find_isomorphism(graph_matrix *g_a, graph_matrix *g_b, int *result) {
     cur_paths     = pn_a[0]->paths;
     if (memcmp(cur_neighbors, pn_b[0]->neighbors, n*sizeof(int)) != 0
         || memcmp(cur_paths, pn_b[0]->paths, n*sizeof(int64_t)) != 0)
-        goto find_isomorphism_exit;
+        goto pn_heuristic_exit;
 
     /* these comparisons could be improved with hashes */
     for (i = 1; i < n; i++) {
@@ -55,7 +80,7 @@ int find_isomorphism(graph_matrix *g_a, graph_matrix *g_b, int *result) {
 
         if (memcmp(an, bn, n*sizeof(int)) != 0
             || memcmp(ap, bp, n*sizeof(int64_t)) != 0)
-            goto find_isomorphism_exit;
+            goto pn_heuristic_exit;
 
         if (memcmp(an, cur_neighbors, n*sizeof(int)) != 0
             || memcmp(ap, cur_paths, n*sizeof(int64_t)) != 0)
@@ -69,6 +94,10 @@ int find_isomorphism(graph_matrix *g_a, graph_matrix *g_b, int *result) {
     }
     c++; /* c = number of equivalence classes */
 
+
+    /** once the equivalence classes are computed,
+        run an exhaustive search on the limited number
+        of remaining possibilities for isomorphism **/
     if (result == NULL) {
         int *temp_array = malloc(n*sizeof(int));
         status = pn_exhaustive_search(n, c, a_eqv_cl_array,
@@ -81,7 +110,9 @@ int find_isomorphism(graph_matrix *g_a, graph_matrix *g_b, int *result) {
                                       result);
     }
 
-find_isomorphism_exit:
+    /** Cleanup **/
+
+pn_heuristic_exit:
     
     for (i = 0; i < c; i++) {
         il_free(b_eqv_cl_list[i]);
@@ -98,8 +129,12 @@ find_isomorphism_exit:
     return status;
 }
 
+
 /* global var as implicit parameter
-   to compensate the lack of closures */
+   to compensate the lack of closures
+   IMPORTANT : it means you cannot run 2 comparisons
+   with different values of n in parallel
+*/
 static int pn_entry_vect_size;
 int compare_pn_entries_aux(const struct pn_entry *e1,
                            const struct pn_entry *e2) {

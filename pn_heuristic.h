@@ -25,6 +25,6 @@ int pn_exhaustive_search(int n, int c,
 /* return 0 if the graphs are not isomorphic, 1 if they are
    in the latter case, the result array will be filled with
    a permutation of vertices which defines an isomorphism */
-int find_isomorphism(graph_matrix *a, graph_matrix *b, int *result);
+int find_isomorphism(graph_list *a, graph_list *b, int *result);
 
 #endif

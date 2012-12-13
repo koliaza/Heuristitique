@@ -15,16 +15,12 @@ void print_matrix(int n, int *a) {
 
 /* The current implementation will completely fail if the file provided
    does not follow the spec */
-graph_list* read_graph_from_file(const char* filename, int* counter) {
-    FILE *f;
+graph_list* fget_graph_list(FILE *f, int* counter) {
     int n, m, i, j, tmp;
     graph_list *g;
 
     if (counter != NULL) *counter = 0;
 
-    f = fopen(filename, "r");
-    if (f == NULL) return NULL;
-    
     /* scanf is unsafe but who cares ? */
     fscanf(f, "%d", &n);
     g = gl_alloc(n); /* all entries already initialized to NULL */
@@ -40,7 +36,6 @@ graph_list* read_graph_from_file(const char* filename, int* counter) {
 
     if (counter != NULL) *counter = (*counter) / 2;
     
-    fclose(f);
     return g;
 }
 
@@ -58,6 +53,7 @@ void fprint_graph_list(FILE* f, const graph_list* g) {
     }
 }
 
+/** for graphviz visualization **/
 void fprint_graph_matrix_dot(FILE* f, const graph_matrix* g) {
     int i, j;
     

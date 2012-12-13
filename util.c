@@ -34,6 +34,15 @@ int il_length(const int_list *l) {
     return n;
 }
 
+int il_equal(const int_list *l1, const int_list *l2) {
+    const int_list *p, *q;
+    for (p = l1, q = l2; p != NULL && q != NULL; p = p->next, q = q->next) {
+        if (p->x != q->x)
+            return 0;
+    }
+    return (p == NULL && q == NULL);
+}
+
 /* The insert/remove functions might not have great performance
    because they do a lot of branching */
 

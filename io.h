@@ -12,7 +12,7 @@ void print_matrix(int n, int *a);
 
 /* Functions for reading and writing graphs from/to files
    in the format specified in the subject */
-graph_list* read_graph_from_file(const char* filename, int *counter);
+graph_list* fget_graph_list(FILE *f, int* counter);
 void fprint_graph_list(FILE* f, const graph_list* g);
 
 
