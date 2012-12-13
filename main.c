@@ -39,13 +39,13 @@ int main(int argc, char *argv[]) {
     if (!find_isomorphism(g1, g2, NULL))
         printf("=D 1\n");
 
-    int result[10];
+    int result[42];
     int i;
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < 42; i++)
         result[i] = -42;
-    if(find_isomorphism(g1, g3, result))
+    if(find_isomorphism(g1, g1, result))
         printf("=D 2\n");
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < 42; i++)
         printf("%d ", result[i]);
     putchar('\n');
     

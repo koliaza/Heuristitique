@@ -4,132 +4,234 @@
 #include <assert.h>
 #include <string.h>
 
+/* for debug */
+#include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
+
 #include "graph.h"
 #include "matrix_mod.h"
 #include "io.h"
 
-int pn_heuristic(int n, graph_matrix *g_a, graph_matrix *g_b, int *result);
+/*** Partitions / Equivalence classes on the vertices of a graph ***/
+
+/* Partition = array of elements + list of boundaries */
+
+/* TODO : rewrite to eliminate the need to use the non-standard
+   qsort_r function */
+
+int compare_with_keys(const void *x, const void *y, void *keys) {
+    int64_t foo = ((int64_t*)keys)[*((int*)y)] - ((int64_t*)keys)[*((int*)x)];
+    if (foo == 0) return 0;
+    else if (foo < 0) return (-1);
+    else return 1;
+}
+
+int refine_matching_partitions(int_list *boundaries,
+                               int *array_a,    int *array_b,
+                               int64_t *keys_a, int64_t *keys_b) {
+    int_list *p, *q;
+    int start, end;
+    int i;
+    int64_t cur_key, new_key;
+
+    for (p = boundaries; p->next != NULL; p = p->next) {
+        start = p->x;
+        end = p->next->x; /* memory location after the end */  
+        
+        qsort_r(array_a + start, end-start, sizeof(int),
+                compare_with_keys, keys_a);
+        qsort_r(array_b + start, end-start, sizeof(int),
+                compare_with_keys, keys_b);
+        
+        cur_key = keys_a[array_a[start]];
+        if (cur_key != keys_b[array_b[start]]) {
+            printf("foo\n");
+            return 0;
+        }
+        q = p;
+        for (i = start+1; i < end; i++) {
+            new_key = keys_a[array_a[i]];
+            if (new_key != keys_b[array_b[i]]) {
+                printf("foobar\n");
+                return 0;
+            }
+            if (new_key != cur_key) {
+                cur_key = new_key;
+                q->next = il_cons(i, q->next);
+                q = q->next;
+            }
+        }
+    }
+    
+    return 1;
+}
+
+int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
+                             int_list *boundaries,
+                             int *partition_array_a, int *partition_array_b) {
+    /** Variable initialisation and allocation **/
+    int status = 0;
+
+    int i, j, k;
+    const size_t mat64size = n*n*sizeof(int64_t);
+
+    int64_t *tmp = malloc(mat64size);
+    int64_t *a64 = malloc(mat64size);
+    int64_t *a_pow = malloc(mat64size);
+    int64_t *b64 = malloc(mat64size);
+    int64_t *b_pow = malloc(mat64size);
+
+    /* all keys for sorting are int64 to make things a bit easier */
+    int64_t *neighbors_a = malloc(n*sizeof(int64_t));
+    int64_t *paths_a = malloc(n*sizeof(int64_t));
+    int64_t *neighbors_b = malloc(n*sizeof(int64_t));
+    int64_t *paths_b = malloc(n*sizeof(int64_t));
+    
+    copy_int_array_to_int64(n*n, g_a->matrix, a64);
+    memcpy(a_pow, a64, mat64size);
+    copy_int_array_to_int64(n*n, g_b->matrix, b64);
+    memcpy(b_pow, b64, mat64size);
+
+    /** Main loop **/
+    /* invariant : A_pow = A^(i+1) */
+    for (i = 0; i < n; i++) {
+
+        for(j = 0; j < n; j++) {
+            neighbors_a[j] = neighbors_b[j] = 0;
+            paths_a[i] = paths_b[i] = 0;
+            for (k = 0; k < n; k++) {
+                neighbors_a[j] += (a_pow[j*n+k] != 0);
+                neighbors_b[j] += (b_pow[j*n+k] != 0);
+                paths_a[j] = addp(paths_a[j], a_pow[j*n+k]);
+                paths_b[j] = addp(paths_b[j], b_pow[j*n+k]);
+            }
+        }
+
+        if (!refine_matching_partitions(boundaries,
+                                        partition_array_a, partition_array_b,
+                                        neighbors_a, neighbors_b)) {
+            printf("incompatible neighbors\n");
+            goto compute_equiv_classes_pn_exit;
+        }
+        if (!refine_matching_partitions(boundaries,
+                                        partition_array_a, partition_array_b,
+                                        paths_a, paths_b)) {
+            printf("incompatible paths\n");
+            goto compute_equiv_classes_pn_exit;
+        }
+
+        /* maybe compute the number of possibilities to return quickly
+           with special exit code and enter directly the backtracking
+         */
+
+        /* update for next iteration */
+        matrix_mulp(n, a64, a_pow, tmp);
+        memcpy(a_pow, tmp, mat64size);
+        matrix_mulp(n, b64, b_pow, tmp);
+        memcpy(b_pow, tmp, mat64size);
+    }
+    
+    status = 1;
+
+compute_equiv_classes_pn_exit:
+    free(a64);
+    free(a_pow);
+    free(tmp);
+
+    return status;
+}
+
 
 int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
-    int n;
+    int n = g_a->n;
     int i;
+    int_list *p;
+
+    int_list *boundaries = il_cons(0, il_singleton(n));
+    int *partition_array_a = malloc(n*sizeof(int));
+    int *partition_array_b = malloc(n*sizeof(int));
+
+    for (i = 0; i < n; i++) {
+        partition_array_a[i] = i;
+        partition_array_b[i] = i;
+    }
 
     /** First tests **/
 
-    n = g_a->n;
     assert(n != 0);
     if (n != g_b->n) return 0;
-
+/*
     if (gl_equal(g_a, g_b)) {
         for (i = 0; i < n; i++) {
             result[i] = i;
         }
         return 1;
     }
-
+*/ 
     /** When the first tests are non-conclusive,
         use the core PN algorithm **/
 
     graph_matrix *g_a_mat = graph_list_to_matrix(g_a);
     graph_matrix *g_b_mat = graph_list_to_matrix(g_b);
     
-    int status = pn_heuristic(n, g_a_mat, g_b_mat, result);
+    int status = compute_equiv_classes_pn(n, g_a_mat, g_b_mat, boundaries,
+                                          partition_array_a,
+                                          partition_array_b);
+    printf("foo\n");
 
-    gm_free(g_a_mat);
-    gm_free(g_b_mat);
+    if (status == 0) goto find_isomorphism_exit;
 
-    return status;
-}
-
-int pn_heuristic(int n, graph_matrix *g_a, graph_matrix *g_b, int *result) {
-    int i, c;
-    pn_array pn_a, pn_b;
-    int *cur_neighbors = NULL;
-    int64_t *cur_paths = NULL;
-    int *a_eqv_cl_array;
-    int_list **b_eqv_cl_list;
+    /* check for neighbors later
+       it's gonna be ugly ... */
     
-    int status = 0;
-
-    /** Comparison of PN-arrays and partitioning into equivalence classes **/
-
-    pn_a = compute_pn_array(g_a);
-    pn_b = compute_pn_array(g_b);
-
-    a_eqv_cl_array = malloc(n*sizeof(int));
-    b_eqv_cl_list = malloc(n*sizeof(int_list*));
-    for (i = 0; i < n; i++) {
-        a_eqv_cl_array[i] = 0;
+    /* equivalence class representation */
+    int c = -1;
+    int *a_eqv_cl_array = malloc(n*sizeof(int));
+    int_list **b_eqv_cl_list = malloc(n*sizeof(int));
+    for (i = 0; i < n; i++)
         b_eqv_cl_list[i] = NULL;
-    }
- 
-    c = 0; /* c : index of current equiv class */
-    a_eqv_cl_array[pn_a[0]->vertex] = 0;
-    b_eqv_cl_list[0] = il_singleton(pn_b[0]->vertex);
-    cur_neighbors = pn_a[0]->neighbors;
-    cur_paths     = pn_a[0]->paths;
-    if (memcmp(cur_neighbors, pn_b[0]->neighbors, n*sizeof(int)) != 0
-        || memcmp(cur_paths, pn_b[0]->paths, n*sizeof(int64_t)) != 0)
-        goto pn_heuristic_exit;
+    
+    print_list(boundaries);
 
-    /* these comparisons could be improved with hashes */
-    for (i = 1; i < n; i++) {
-        int *an = pn_a[i]->neighbors;
-        int64_t *ap = pn_a[i]->paths;
-        int *bn = pn_b[i]->neighbors;
-        int64_t *bp = pn_b[i]->paths;
-
-        if (memcmp(an, bn, n*sizeof(int)) != 0
-            || memcmp(ap, bp, n*sizeof(int64_t)) != 0)
-            goto pn_heuristic_exit;
-
-        if (memcmp(an, cur_neighbors, n*sizeof(int)) != 0
-            || memcmp(ap, cur_paths, n*sizeof(int64_t)) != 0)
-        {
-            c++;
-            cur_neighbors = an;
-            cur_paths     = ap;
+    for (p = boundaries; p->next != NULL; p = p->next) {
+        c++;
+        for (i = p->x; i < p->next->x; i++) {
+            a_eqv_cl_array[partition_array_a[i]] = c;
+            b_eqv_cl_list[c] = il_cons(partition_array_b[i], b_eqv_cl_list[c]);
         }
-        a_eqv_cl_array[pn_a[i]->vertex] = c;
-        b_eqv_cl_list[c] = il_cons(pn_b[i]->vertex, b_eqv_cl_list[c]);
     }
-    c++; /* c = number of equivalence classes */
+    c++;
 
-
-    /** once the equivalence classes are computed,
-        run an exhaustive search on the limited number
-        of remaining possibilities for isomorphism **/
     if (result == NULL) {
         int *temp_array = malloc(n*sizeof(int));
         status = pn_exhaustive_search(n, c, a_eqv_cl_array,
-                                      b_eqv_cl_list, g_a, g_b,
+                                      b_eqv_cl_list, g_a_mat, g_b_mat,
                                       temp_array);
         free(temp_array);
     } else {
         status = pn_exhaustive_search(n, c, a_eqv_cl_array,
-                                      b_eqv_cl_list, g_a, g_b,
+                                      b_eqv_cl_list, g_a_mat, g_b_mat,
                                       result);
     }
-
-    /** Cleanup **/
-
-pn_heuristic_exit:
-    
+    free(a_eqv_cl_array);
     for (i = 0; i < c; i++) {
         il_free(b_eqv_cl_list[i]);
     }
-    free(a_eqv_cl_array);
     free(b_eqv_cl_list);
-    for (i = 0; i < n; i++) {
-        free(pn_a[i]);
-        free(pn_b[i]);
-    }
-    free(pn_a);
-    free(pn_b);
-    
+
+find_isomorphism_exit:
+    il_free(boundaries);
+    free(partition_array_a);
+    free(partition_array_b);
+    gm_free(g_a_mat);
+    gm_free(g_b_mat);
     return status;
 }
 
+
+/** this is old
+    will be eliminated when the qsort_r replacement comes **/
 
 /* global var as implicit parameter
    to compensate the lack of closures
