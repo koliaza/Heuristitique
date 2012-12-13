@@ -95,11 +95,11 @@ void gl_edge_remove(graph_list* g, int i, int j) {
 }
 void gl_multi_edge_add(graph_list* g, int i, int j) {
     g->list_array[i] = il_s_insert(j, g->list_array[i]);
-    g->list_array[j] = il_s_insert(i, g->list_array[j]);
+    if (i != j) g->list_array[j] = il_s_insert(i, g->list_array[j]);
 }
 void gl_multi_edge_remove(graph_list* g, int i, int j) {
     g->list_array[i] = il_s_remove_once(j, g->list_array[i]);
-    g->list_array[j] = il_s_remove_once(i, g->list_array[j]);
+    if (i != j) g->list_array[j] = il_s_remove_once(i, g->list_array[j]);
 }
 
 int gl_vertex_degree(const graph_list* g, int i) {
@@ -150,11 +150,11 @@ int gl_equal(const graph_list *g_a, const graph_list *g_b) {
 
 
 graph_list* graph_matrix_to_list(const graph_matrix *gm) {
-    int i, j;
+    int i, j, k;
     graph_list *gl = gl_alloc(gm->n);
     for (i = 0; i < gm->n; i++) {
         for (j = i; j < gm->n; j++) {
-            if (gm_edge(gm, i, j))
+            for (k = 0; k < gm_edge(gm, i, j); k++)
                 gl_multi_edge_add(gl, i, j);
         }
     }

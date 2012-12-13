@@ -36,10 +36,18 @@ int main(int argc, char *argv[]) {
     g3 = fget_graph_list(f, NULL);
     fclose(f);
 
-    if (!find_isomorphism(g1, g2, NULL) && find_isomorphism(g1, g3, NULL))
-        printf("=D\n");
-    else
-        printf("T_T\n");
+    if (!find_isomorphism(g1, g2, NULL))
+        printf("=D 1\n");
+
+    int result[10];
+    int i;
+    for (i = 0; i < 10; i++)
+        result[i] = -42;
+    if(find_isomorphism(g1, g3, result))
+        printf("=D 2\n");
+    for (i = 0; i < 10; i++)
+        printf("%d ", result[i]);
+    putchar('\n');
     
     return 0;
 }
