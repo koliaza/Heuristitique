@@ -110,9 +110,9 @@ int_list* il_s_remove_once(int x, int_list *l) {
 int il_s_member(int x, const int_list *l) {
     const int_list *p;
     for (p = l; p != NULL; p = p->next) {
-        if (p->x == x) break;
+        if (p->x >= x) break;
     }
-    return (p != NULL);
+    return (p != NULL && p->x == x);
 }
 
 
