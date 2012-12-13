@@ -107,6 +107,31 @@ int_list* il_s_remove_once(int x, int_list *l) {
     }
 }
 
+int_list* il_s_remove_once(int x, int_list *l) {
+    int_list *p, *last;
+    
+    if (l == NULL) {
+        return NULL;
+    }
+    } else {
+        p = l->next; last = l;
+        while (p != NULL) {
+			
+            if (p->x < x) {
+                last->p = p;
+				p = p->next;
+            }
+			if (p->x == x) {
+                p = p->next;
+            }
+			else {
+			last->p = p;
+			}
+        }
+        return l;
+    }
+}
+
 int il_s_member(int x, const int_list *l) {
     const int_list *p;
     for (p = l; p != NULL; p = p->next) {
