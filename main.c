@@ -4,7 +4,7 @@
 
 #include "random_graph.h"
 #include "io.h"
-#include "pn-heuristic.h"
+#include "pn_heuristic.h"
 
 int main(int argc, char **argv) {
     const int n = 42;
