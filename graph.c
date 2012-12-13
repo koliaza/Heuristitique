@@ -37,19 +37,21 @@ int gm_edge(const graph_matrix* g, int i, int j) {
 }
 void gm_edge_add(graph_matrix* g, int i, int j) {
     g->matrix[i*(g->n) + j] = 1;
-    g->matrix[j*(g->n) + i] = 1;
+    if (i != j) g->matrix[j*(g->n) + i] = 1;
 }
 void gm_edge_remove(graph_matrix* g, int i, int j) {
     g->matrix[i*(g->n) + j] = 0;
-    g->matrix[j*(g->n) + i] = 0;
+    if (i != j) g->matrix[j*(g->n) + i] = 0;
 }
 void gm_multi_edge_add(graph_matrix* g, int i, int j) {
     g->matrix[i*(g->n) + j] += 1;
-    g->matrix[j*(g->n) + i] += 1;
+    if (i != j) g->matrix[j*(g->n) + i] += 1;
 }
 void gm_multi_edge_remove(graph_matrix* g, int i, int j) {
-    g->matrix[i*(g->n) + j] -= 1;
-    g->matrix[j*(g->n) + i] -= 1;
+    if (gm_edge(g,i,j)) {
+        g->matrix[i*(g->n) + j] -= 1;
+        if (i != j) g->matrix[j*(g->n) + i] -= 1;
+    }
 }
 
 
@@ -87,11 +89,11 @@ int gl_edge(const graph_list* g, int i, int j) {
 }
 void gl_edge_add(graph_list* g, int i, int j) {
     g->list_array[i] = il_s_insert_once(j, g->list_array[i]);
-    g->list_array[j] = il_s_insert_once(i, g->list_array[j]);
+    if (i != j) g->list_array[j] = il_s_insert_once(i, g->list_array[j]);
 }
 void gl_edge_remove(graph_list* g, int i, int j) {
     g->list_array[i] = il_s_remove_once(j, g->list_array[i]);
-    g->list_array[j] = il_s_remove_once(i, g->list_array[j]);
+    if (i != j) g->list_array[j] = il_s_remove_once(i, g->list_array[j]);
 }
 void gl_multi_edge_add(graph_list* g, int i, int j) {
     g->list_array[i] = il_s_insert(j, g->list_array[i]);
