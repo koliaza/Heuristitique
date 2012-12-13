@@ -1,0 +1,13 @@
+TODO
+urgent
+add the five primary tests with lists
+data structure for equivalence classes
+check neighbours of the PN arrays
+
+less important
+follow the number of possibilities and state of the program
+handle k graphs
+
+less
+in the 2-graph comparison case compare at each multiplication of PN
+update the report to take implementation and modifications into account 
