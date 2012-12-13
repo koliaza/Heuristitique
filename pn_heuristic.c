@@ -6,6 +6,7 @@
 
 #include "graph.h"
 #include "matrix_mod.h"
+#include "io.h"
 
 int pn_heuristic(int n, graph_matrix *g_a, graph_matrix *g_b, int *result);
 
@@ -234,6 +235,11 @@ int pn_exhaustive_search(int n, int c,
         /* if everything goes well, try one more vertex */
         if (partial_ok) {
             v_a++;
+            
+            printf("Vertex %d of A : possibilities in B are ", v_a);
+            print_list(b_eqv_cl_list[a_eqv_cl_array[v_a]]);
+            putchar('\n');
+
             /* stack push */
             tmp = cs;
             cs = malloc(sizeof(struct choice_stack));
@@ -245,12 +251,14 @@ int pn_exhaustive_search(int n, int c,
         while (cs->b_untested == NULL) {
             tmp = cs;
             cs = cs->rest;
+            v_a = cs->a_vertex;
             free(tmp);
             if (cs == NULL) return 0;
         }
         /* try next possibility */
         result[v_a] = cs->b_untested->x;
         cs->b_untested = cs->b_untested->next;
+        printf("Testing A[%d] -> B[%d]\n", v_a, result[v_a]);
         
         partial_ok = 1;
         for (i = 0; i < v_a; i++) {

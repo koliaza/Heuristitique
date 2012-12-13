@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "graph.h"
 
+/* works well for small numbers */
 void print_matrix(int n, int *a) {
     int i, j;
     for (i = 0; i < n; i++) {
@@ -12,6 +13,15 @@ void print_matrix(int n, int *a) {
         putchar('\n');
     }
 }
+
+void print_list(const int_list *l) {
+    putchar('[');
+    for (; l != NULL; l = l->next) {
+        printf("%d,", l->x);
+    } /* who gives a sh** about trailing commas ? */
+    putchar(']');
+}
+
 
 /* The current implementation will completely fail if the file provided
    does not follow the spec */

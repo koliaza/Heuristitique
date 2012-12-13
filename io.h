@@ -6,6 +6,8 @@
 
 /* for debugging purposes */
 void print_matrix(int n, int *a);
+void print_list(const int_list *l);
+
 
 /* TODO : fix inconsistency in interface
    file handle vs. filename */
