@@ -1,11 +1,14 @@
 #include "matrix_mod.h"
 
-const int64_t PRIME = (((int64_t)1) << 61) - 1;
+const int64_t PRIME = (int64_t)0 - 59;
+const int64_t PRIMESMALL = (int64_t)0 - 5;
+// to find the primes : http://primes.utm.edu/lists/2small/0bit.html
 
 /* pray and hope it's inlined */
 int64_t addp(int64_t x, int64_t y) {
     return ((x+y) % PRIME);
 }
+
 
 int64_t mulp(int64_t x, int64_t y) {
     int i;
@@ -31,6 +34,11 @@ int64_t mulp(int64_t x, int64_t y) {
     hi = (hi << 1) % PRIME;
 
     return ( (xl*yl + mid + hi) % PRIME );
+}
+
+int64_t mulpsmall(int64_t x, int64_t y) {
+//Once again we consider integers strictly smaller than the prime
+    ( (x*y) % PRIMESMALL );
 }
 
 int64_t* matrix_addp(int n, const int64_t *a, const int64_t *b, int64_t *r) {
