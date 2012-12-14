@@ -97,9 +97,11 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
     /* invariant : A_pow = A^(i+1) */
     for (i = 0; i < n; i++) {
 
+        printf("Iteration %d\n", i);
+
         for(j = 0; j < n; j++) {
             neighbors_a[j] = neighbors_b[j] = 0;
-            paths_a[i] = paths_b[i] = 0;
+            paths_a[j] = paths_b[j] = 0;
             for (k = 0; k < n; k++) {
                 neighbors_a[j] += (a_pow[j*n+k] != 0);
                 neighbors_b[j] += (b_pow[j*n+k] != 0);
@@ -124,6 +126,7 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
         /* maybe compute the number of possibilities to return quickly
            with special exit code and enter directly the backtracking
          */
+        printf("nearing iteration end\n");
 
         /* update for next iteration */
         matrix_mulp(n, a64, a_pow, tmp);
@@ -131,6 +134,8 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
         matrix_mulp(n, b64, b_pow, tmp);
         memcpy(b_pow, tmp, mat64size);
     }
+
+    printf("foobar !\n");
     
     status = 1;
 
@@ -188,7 +193,7 @@ int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
     /* equivalence class representation */
     int c = -1;
     int *a_eqv_cl_array = malloc(n*sizeof(int));
-    int_list **b_eqv_cl_list = malloc(n*sizeof(int));
+    int_list **b_eqv_cl_list = malloc(n*sizeof(void*));
     for (i = 0; i < n; i++)
         b_eqv_cl_list[i] = NULL;
     
