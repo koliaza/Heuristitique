@@ -1,7 +1,7 @@
 #include "matrix_mod.h"
 
-const int64_t PRIME = (int64_t)0 - 59;
-const int64_t PRIMESMALL = (int64_t)0 - 5;
+const int64_t PRIME = (((int64_t)1) << 61) - 1;
+const int64_t PRIMESMALL = (((int64_t)1) << 31) - 1;
 // to find the primes : http://primes.utm.edu/lists/2small/0bit.html
 
 /* pray and hope it's inlined */

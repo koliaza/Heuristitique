@@ -429,13 +429,13 @@ Still check for simple transpositions when it is not the case
 Tests and Benchmark
 \end_layout
 
+\begin_layout Subsection
+Random generation
+\end_layout
+
 \begin_layout Standard
 We have included different basic test generation programs, depending on
  the model : 
-\end_layout
-
-\begin_layout Subsection
-Random generation
 \end_layout
 
 \begin_layout Itemize
@@ -455,6 +455,9 @@ The similar model with
 \end_inset
 
  behaves the same way.
+ There is a deterministic multigraph version and a probabilistic version
+ in the other case.
+ 
 \end_layout
 
 \begin_layout Itemize
@@ -479,6 +482,7 @@ key "Wormwald:UniformGeneration"
 
 , so we restricted ourselves to those three models, as our algorithm should
  work as well on multigraphs as on normal graphs.
+ 
 \end_layout
 
 \begin_layout Subsection
