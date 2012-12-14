@@ -5,7 +5,7 @@ data structure for equivalence classes -> done
 check neighbours of the PN arrays -> not yet done
 
 less important
-follow the number of possibilities and state of the program
+follow the number of possibilities and state of the program --> done
 handle k graphs
 fix k-regular generator
 

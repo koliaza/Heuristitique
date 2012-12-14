@@ -45,6 +45,15 @@ void free_matched_partitions(matched_partitions *pp) {
     free(pp->array_b);
 }
 
+double possible_matchings_count(int_list *boundaries) {
+    double acc = 1.0;
+    int_list *p;
+    for (p = boundaries; p->next != NULL; p = p->next) {
+        acc *= factorial(p->next->x - p->x);
+    }
+    return acc;
+}
+
 /* TODO : rewrite to eliminate the need to use the non-standard
    qsort_r function */
 
@@ -73,14 +82,12 @@ int refine_matched_partitions(matched_partitions *pp,
         
         cur_key = keys_a[pp->array_a[start]];
         if (cur_key != keys_b[pp->array_b[start]]) {
-            printf("foo\n");
             return 0;
         }
         q = p;
         for (i = start+1; i < end; i++) {
             new_key = keys_a[pp->array_a[i]];
             if (new_key != keys_b[pp->array_b[i]]) {
-                printf("foobar\n");
                 return 0;
             }
             if (new_key != cur_key) {
@@ -98,6 +105,8 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
                              matched_partitions *partitions) {
     /** Variable initialisation and allocation **/
     int status = 0;
+
+    double cnt = 0;
 
     int i, j, k;
     const size_t mat64size = n*n*sizeof(int64_t);
@@ -149,10 +158,13 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
             printf("incompatible paths\n");
             goto compute_equiv_classes_pn_exit;
         }
-
-        /* maybe compute the number of possibilities to return quickly
-           with special exit code and enter directly the backtracking
-         */
+        
+        cnt = possible_matchings_count(partitions->boundaries);
+        printf("Reduced number of possibilities to %lf\n", cnt);
+        if (cnt <= n*n) {
+            status = 2;
+            goto compute_equiv_classes_pn_exit;
+        }
 
         /* update for next iteration */
         matrix_mulp(n, a64, a_pow, tmp);
@@ -247,7 +259,6 @@ int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
     graph_matrix *g_b_mat = graph_list_to_matrix(g_b);
     
     int status = compute_equiv_classes_pn(n, g_a_mat, g_b_mat, &partitions);
-    printf("foo\n");
 
     if (status == 0) goto find_isomorphism_exit;
 
@@ -273,9 +284,15 @@ int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
     }
     c++;
 
+    if (status == 2) goto find_isomorphism_exhaustive;
+
+    /* neighborhood check : do later */
+
     /** After doing a lot of work to lower the number of possible
         paring of vertices between the 2 graphs, we turn to brute-forcing
         intelligently with a backtracking algorithm **/
+
+find_isomorphism_exhaustive:
 
     if (result == NULL) {
         int *temp_array = malloc(n*sizeof(int));
