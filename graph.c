@@ -114,12 +114,12 @@ int gl_vertex_degree(const graph_list* g, int i) {
 }
 
 void gl_connected_components_aux(const graph_list *g, int *result,
-                                 int vertex, int *component_counter) {
+                                 int vertex, int compo_number) {
     int_list *p;
-    result[vertex] = *component_counter;
+    result[vertex] = compo_number;
     for (p = g->list_array[vertex]; p != NULL; p = p->next) {
         if (result[p->x] == -1) {
-            gl_connected_components_aux(g, result, p->x, component_counter);
+            gl_connected_components_aux(g, result, p->x, compo_number);
         }
     }
 }
@@ -139,7 +139,7 @@ int gl_connected_components(const graph_list *g, int *result) {
             i++;
         } else {
             component_counter++;
-            gl_connected_components_aux(g, result, i, &component_counter);
+            gl_connected_components_aux(g, result, i, component_counter);
         }
     }
 
