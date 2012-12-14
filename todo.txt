@@ -1,8 +1,8 @@
 TODO
 urgent
-add the five primary tests with lists
-data structure for equivalence classes
-check neighbours of the PN arrays
+add the five primary tests with lists -> partial progress
+data structure for equivalence classes -> done
+check neighbours of the PN arrays -> done
 
 less important
 follow the number of possibilities and state of the program
