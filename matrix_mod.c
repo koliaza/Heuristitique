@@ -38,7 +38,7 @@ int64_t mulp(int64_t x, int64_t y) {
 
 int64_t mulpsmall(int64_t x, int64_t y) {
 //Once again we consider integers strictly smaller than the prime
-    ( (x*y) % PRIMESMALL );
+    return ( (x*y) % PRIMESMALL );
 }
 
 int64_t* matrix_addp(int n, const int64_t *a, const int64_t *b, int64_t *r) {

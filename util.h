@@ -22,7 +22,7 @@ int_list* il_s_insert(int x, int_list *l);
 /* maybe call this insert_if_absent */
 int_list* il_s_insert_once(int x, int_list *l);
 int_list* il_s_remove_once(int x, int_list *l);
-/* int_list* il_s_remove_all(int x, int_list *l); */
+int_list* il_s_remove_all(int x, int_list *l);
 int il_s_member(int x, const int_list *l);
 
 
