@@ -10,5 +10,6 @@ handle k graphs
 fix k-regular generator
 
 less
-in the 2-graph comparison case compare at each multiplication of PN
+in the 2-graph comparison case compare at each multiplication of PN --> done
 update the report to take implementation and modifications into account 
+handle --verbose flag

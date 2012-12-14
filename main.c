@@ -6,14 +6,15 @@
 #include "pn_heuristic.h"
 
 int main(int argc, char *argv[]) {
-    if (argc < 3) {
-        fprintf(stderr, "Usage: heuristitique graph1_file graph2_file\n");
-    }
-
     graph_list *g1 = NULL;
     graph_list *g2 = NULL;
 
     FILE *f;
+
+    if (argc < 3) {
+        fprintf(stderr, "Usage: heuristitique graph1_file graph2_file\n");
+        exit(0);
+    }
 
     f = fopen(argv[1], "r");
     if (f == NULL) {
