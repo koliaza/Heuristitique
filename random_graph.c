@@ -31,10 +31,10 @@ graph_matrix* erdos_renyi_gnm(int n, int m) {
 
     g = gm_init_zero(gm_alloc(n));
 	i = 0;
-    while (i<m) {
+    while (i < m) {
 	j = random_int_in_range(0, n-1);
 	k = random_int_in_range(0, n-1);
-	if !gm_edge(g,j,k) {
+	if (!gm_edge(g,j,k)) {
         gm_multi_edge_add(g,j,k);
 		i++;
 		}
