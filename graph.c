@@ -124,7 +124,7 @@ void gl_connected_components_aux(const graph_list *g, int *result,
     }
 }
 
-void gl_connected_components(const graph_list *g, int *result) {
+int gl_connected_components(const graph_list *g, int *result) {
     int i;
     int component_counter;
 
@@ -142,6 +142,8 @@ void gl_connected_components(const graph_list *g, int *result) {
             gl_connected_components_aux(g, result, i, &component_counter);
         }
     }
+
+    return component_counter;
 }
 
 int gl_equal(const graph_list *g_a, const graph_list *g_b) {

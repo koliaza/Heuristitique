@@ -3,6 +3,17 @@
 #include <stdlib.h>
 #include <math.h>
 
+/*** Numeric utilities ***/
+
+double factorial(int n) {
+    int i;
+    double r = 1.0;
+    for (i = 1; i <= n; i++) {
+        r *= i;
+    }
+    return r;
+}
+
 /*** Linked lists ***/
 
 int_list* il_cons(int x, int_list *l) {

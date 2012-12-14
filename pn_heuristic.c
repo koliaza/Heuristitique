@@ -15,7 +15,35 @@
 
 /*** Partitions / Equivalence classes on the vertices of a graph ***/
 
-/* Partition = array of elements + list of boundaries */
+/* Partition = array of elements + list of boundaries
+   format chosen for its suitability in incremental updates
+ */
+
+/* add a single partition struct later ? might be of use... */
+
+typedef struct {
+    int_list *boundaries;
+    int *array_a;
+    int *array_b;
+} matched_partitions;
+
+matched_partitions* init_matched_partitions(int n, matched_partitions *pp) {
+    int i;
+    pp->boundaries = il_cons(0, il_singleton(n));
+    pp->array_a = malloc(n*sizeof(int));
+    pp->array_b = malloc(n*sizeof(int));
+    for (i = 0; i < n; i++) {
+        pp->array_a[i] = i;
+        pp->array_b[i] = i;
+    }
+    return pp;
+}
+
+void free_matched_partitions(matched_partitions *pp) {
+    il_free(pp->boundaries);
+    free(pp->array_a);
+    free(pp->array_b);
+}
 
 /* TODO : rewrite to eliminate the need to use the non-standard
    qsort_r function */
@@ -27,32 +55,31 @@ int compare_with_keys(const void *x, const void *y, void *keys) {
     else return 1;
 }
 
-int refine_matching_partitions(int_list *boundaries,
-                               int *array_a,    int *array_b,
-                               int64_t *keys_a, int64_t *keys_b) {
+int refine_matched_partitions(matched_partitions *pp,
+                              const int64_t *keys_a, const int64_t *keys_b) {
     int_list *p, *q;
     int start, end;
     int i;
     int64_t cur_key, new_key;
 
-    for (p = boundaries; p->next != NULL; p = p->next) {
+    for (p = pp->boundaries; p->next != NULL; p = p->next) {
         start = p->x;
         end = p->next->x; /* memory location after the end */  
         
-        qsort_r(array_a + start, end-start, sizeof(int),
+        qsort_r(pp->array_a + start, end-start, sizeof(int),
                 compare_with_keys, keys_a);
-        qsort_r(array_b + start, end-start, sizeof(int),
+        qsort_r(pp->array_b + start, end-start, sizeof(int),
                 compare_with_keys, keys_b);
         
-        cur_key = keys_a[array_a[start]];
-        if (cur_key != keys_b[array_b[start]]) {
+        cur_key = keys_a[pp->array_a[start]];
+        if (cur_key != keys_b[pp->array_b[start]]) {
             printf("foo\n");
             return 0;
         }
         q = p;
         for (i = start+1; i < end; i++) {
-            new_key = keys_a[array_a[i]];
-            if (new_key != keys_b[array_b[i]]) {
+            new_key = keys_a[pp->array_a[i]];
+            if (new_key != keys_b[pp->array_b[i]]) {
                 printf("foobar\n");
                 return 0;
             }
@@ -68,14 +95,18 @@ int refine_matching_partitions(int_list *boundaries,
 }
 
 int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
-                             int_list *boundaries,
-                             int *partition_array_a, int *partition_array_b) {
+                             matched_partitions *partitions) {
     /** Variable initialisation and allocation **/
     int status = 0;
 
     int i, j, k;
     const size_t mat64size = n*n*sizeof(int64_t);
+    
 
+    /* idea : have separate adjacency matrices for different connected
+       components to reduce the size
+       --> gain in both space and time at the cost of making the code
+           more complicated */
     int64_t *tmp = malloc(mat64size);
     int64_t *a64 = malloc(mat64size);
     int64_t *a_pow = malloc(mat64size);
@@ -110,15 +141,11 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
             }
         }
 
-        if (!refine_matching_partitions(boundaries,
-                                        partition_array_a, partition_array_b,
-                                        neighbors_a, neighbors_b)) {
+        if (!refine_matched_partitions(partitions, neighbors_a, neighbors_b)) {
             printf("incompatible neighbors\n");
             goto compute_equiv_classes_pn_exit;
         }
-        if (!refine_matching_partitions(boundaries,
-                                        partition_array_a, partition_array_b,
-                                        paths_a, paths_b)) {
+        if (!refine_matched_partitions(partitions, paths_a, paths_b)) {
             printf("incompatible paths\n");
             goto compute_equiv_classes_pn_exit;
         }
@@ -126,7 +153,6 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
         /* maybe compute the number of possibilities to return quickly
            with special exit code and enter directly the backtracking
          */
-        printf("nearing iteration end\n");
 
         /* update for next iteration */
         matrix_mulp(n, a64, a_pow, tmp);
@@ -134,8 +160,6 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
         matrix_mulp(n, b64, b_pow, tmp);
         memcpy(b_pow, tmp, mat64size);
     }
-
-    printf("foobar !\n");
     
     status = 1;
 
@@ -147,90 +171,135 @@ compute_equiv_classes_pn_exit:
     return status;
 }
 
+int connected_components_test(int n, graph_list *g_a, graph_list *g_b,
+                              matched_partitions *partitions) {
+    int status = 0;
+    int i;
+
+    int *compos_a = malloc(n*sizeof(int));
+    int *compos_b = malloc(n*sizeof(int));
+    int *compo_sizes_a = malloc(n*sizeof(int));
+    int *compo_sizes_b = malloc(n*sizeof(int));
+    int64_t *keys_a = malloc(n*sizeof(int64_t));
+    int64_t *keys_b = malloc(n*sizeof(int64_t));
+    
+    gl_connected_components(g_a, compos_a);
+    gl_connected_components(g_b, compos_b);
+
+    for (i = 0; i < n; i++) {
+        compo_sizes_a[i] = 0;
+        compo_sizes_b[i] = 0;
+    }
+    for (i = 0; i < n; i++) {
+        compo_sizes_a[compos_a[i]] += 1;
+        compo_sizes_b[compos_b[i]] += 1;
+    }
+    if (memcmp(compo_sizes_a, compo_sizes_b, n*sizeof(int)) != 0) {
+        printf("The number/size of connected components differ\n");
+        goto connected_components_test_exit;
+    }
+
+    /* not very precise */
+    for (i = 0; i < n; i++) {
+        keys_a[i] = compo_sizes_a[compos_a[i]];
+        keys_b[i] = compo_sizes_b[compos_b[i]];
+    }
+    status = refine_matched_partitions(partitions, keys_a, keys_b);
+
+connected_components_test_exit:
+    free(compos_a);
+    free(compos_b);
+    free(compo_sizes_a);
+    free(compo_sizes_b);
+    free(keys_a);
+    free(keys_b);
+
+    return status;
+}
 
 int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
     int n = g_a->n;
     int i;
     int_list *p;
 
-    int_list *boundaries = il_cons(0, il_singleton(n));
-    int *partition_array_a = malloc(n*sizeof(int));
-    int *partition_array_b = malloc(n*sizeof(int));
-
-    for (i = 0; i < n; i++) {
-        partition_array_a[i] = i;
-        partition_array_b[i] = i;
-    }
+    matched_partitions partitions;
+    init_matched_partitions(n, &partitions);
 
     /** First tests **/
 
     assert(n != 0);
     if (n != g_b->n) return 0;
-/*
+
     if (gl_equal(g_a, g_b)) {
         for (i = 0; i < n; i++) {
             result[i] = i;
         }
         return 1;
     }
-*/ 
+
+    if (!connected_components_test(n, g_a, g_b, &partitions))
+        return 0;
+
     /** When the first tests are non-conclusive,
         use the core PN algorithm **/
 
     graph_matrix *g_a_mat = graph_list_to_matrix(g_a);
     graph_matrix *g_b_mat = graph_list_to_matrix(g_b);
     
-    int status = compute_equiv_classes_pn(n, g_a_mat, g_b_mat, boundaries,
-                                          partition_array_a,
-                                          partition_array_b);
+    int status = compute_equiv_classes_pn(n, g_a_mat, g_b_mat, &partitions);
     printf("foo\n");
 
     if (status == 0) goto find_isomorphism_exit;
 
-    /* check for neighbors later
-       it's gonna be ugly ... */
-    
-    /* equivalence class representation */
+    /** Equivalence classes as (vertex -> number of class) arrays
+        allow us to compare easily the classes to which 2 vertices belong
+        The following section is used to facilitate both the comparison
+        of neighborhoods and the exhaustive search later
+     **/
     int c = -1;
     int *a_eqv_cl_array = malloc(n*sizeof(int));
+    int *b_eqv_cl_array = malloc(n*sizeof(int));
     int_list **b_eqv_cl_list = malloc(n*sizeof(void*));
     for (i = 0; i < n; i++)
         b_eqv_cl_list[i] = NULL;
     
-    print_list(boundaries);
-
-    for (p = boundaries; p->next != NULL; p = p->next) {
+    for (p = partitions.boundaries; p->next != NULL; p = p->next) {
         c++;
         for (i = p->x; i < p->next->x; i++) {
-            a_eqv_cl_array[partition_array_a[i]] = c;
-            b_eqv_cl_list[c] = il_cons(partition_array_b[i], b_eqv_cl_list[c]);
+            a_eqv_cl_array[partitions.array_a[i]] = c;
+            b_eqv_cl_array[partitions.array_b[i]] = c;
+            b_eqv_cl_list[c] = il_cons(partitions.array_b[i], b_eqv_cl_list[c]);
         }
     }
     c++;
 
+    /** After doing a lot of work to lower the number of possible
+        paring of vertices between the 2 graphs, we turn to brute-forcing
+        intelligently with a backtracking algorithm **/
+
     if (result == NULL) {
         int *temp_array = malloc(n*sizeof(int));
-        status = pn_exhaustive_search(n, c, a_eqv_cl_array,
-                                      b_eqv_cl_list, g_a_mat, g_b_mat,
-                                      temp_array);
+        status = pn_exhaustive_search(n, c, a_eqv_cl_array, b_eqv_cl_list,
+                                      g_a_mat, g_b_mat, temp_array);
         free(temp_array);
     } else {
-        status = pn_exhaustive_search(n, c, a_eqv_cl_array,
-                                      b_eqv_cl_list, g_a_mat, g_b_mat,
-                                      result);
+        status = pn_exhaustive_search(n, c, a_eqv_cl_array, b_eqv_cl_list,
+                                      g_a_mat, g_b_mat, result);
     }
+
     free(a_eqv_cl_array);
+    free(b_eqv_cl_array);
     for (i = 0; i < c; i++) {
         il_free(b_eqv_cl_list[i]);
     }
     free(b_eqv_cl_list);
 
 find_isomorphism_exit:
-    il_free(boundaries);
-    free(partition_array_a);
-    free(partition_array_b);
+
+    free_matched_partitions(&partitions);
     gm_free(g_a_mat);
     gm_free(g_b_mat);
+
     return status;
 }
 

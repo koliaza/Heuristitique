@@ -44,7 +44,7 @@ void gl_multi_edge_add(graph_list* g, int i, int j);
 void gl_multi_edge_remove(graph_list* g, int i, int j);
 
 int gl_vertex_degree(const graph_list* g, int i);
-void gl_connected_components(const graph_list *g, int *result);
+int gl_connected_components(const graph_list *g, int *result);
 /* checks structural equality of the representation of the graph */
 int gl_equal(const graph_list *g_a, const graph_list *g_b);
 

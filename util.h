@@ -1,6 +1,10 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+/*** Numeric utilities ***/
+
+double factorial(int n);
+
 /*** Linked lists of integers ***/
 
 typedef struct int_list int_list;
