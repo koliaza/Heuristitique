@@ -24,6 +24,9 @@ int connected_components_test(int, graph_list*, graph_list*,
 int first_order_test(int, graph_list*, graph_list*, matched_partitions*);
 int compute_equiv_classes_pn(int, graph_matrix*, graph_matrix*,
                              matched_partitions*);
+int neighborhood_check(int n, graph_list *g_a, graph_list *g_b,
+                       int *a_eqv_cl_array, int *b_eqv_cl_array,
+                       matched_partitions *partitions);
 int pn_exhaustive_search(int, int, int*, int_list**,
                          graph_matrix*, graph_matrix*, int*);
 
@@ -39,7 +42,6 @@ int pn_exhaustive_search(int, int, int*, int_list**,
 int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
     int n = g_a->n;
     int i, status = NO_STATUS;
-    int_list *p;
     double possibilities;
 
     matched_partitions partitions;
@@ -93,49 +95,50 @@ int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
         The following section is used to facilitate both the comparison
         of neighborhoods and the exhaustive search later
      **/
-    int c = -1;
+    int c;
     int *a_eqv_cl_array = malloc(n*sizeof(int));
     int *b_eqv_cl_array = malloc(n*sizeof(int));
-    int_list **b_eqv_cl_list = malloc(n*sizeof(void*));
-    for (i = 0; i < n; i++)
-        b_eqv_cl_list[i] = NULL;
+
+    c = tag_arrays_with_matched_partition(&partitions,
+                                          a_eqv_cl_array, b_eqv_cl_array);
+
+    /** ... **/
     
-    for (p = partitions.boundaries; p->next != NULL; p = p->next) {
-        c++;
-        for (i = p->x; i < p->next->x; i++) {
-            a_eqv_cl_array[partitions.array_a[i]] = c;
-            b_eqv_cl_array[partitions.array_b[i]] = c;
-            b_eqv_cl_list[c] = il_cons(partitions.array_b[i], b_eqv_cl_list[c]);
-        }
+    if (status != SKIP_TO_BRUTEFORCE) {
+        status = neighborhood_check(n, g_a, g_b, a_eqv_cl_array, b_eqv_cl_array,
+                                    &partitions);
     }
-    c++;
-
-    if (status == SKIP_TO_BRUTEFORCE) goto find_isomorphism_exhaustive;
-
-    /* neighborhood check : do later */
 
     /** After doing a lot of work to lower the number of possible
         paring of vertices between the 2 graphs, we turn to brute-forcing
         intelligently with a backtracking algorithm **/
-
-find_isomorphism_exhaustive:
-
-    if (result == NULL) {
-        int *temp_array = malloc(n*sizeof(int));
-        status = pn_exhaustive_search(n, c, a_eqv_cl_array, b_eqv_cl_list,
-                                      g_a_mat, g_b_mat, temp_array);
-        free(temp_array);
-    } else {
-        status = pn_exhaustive_search(n, c, a_eqv_cl_array, b_eqv_cl_list,
-                                      g_a_mat, g_b_mat, result);
+    if (status != NO_ISOM) {
+        int_list **b_eqv_cl_list = malloc(c*sizeof(void*));
+        for (i = 0; i < c; i++) 
+            b_eqv_cl_list[i] = NULL;
+        for (i = 0; i < n; i++) {
+            b_eqv_cl_list[b_eqv_cl_array[i]] =
+                il_cons(i, b_eqv_cl_list[b_eqv_cl_array[i]]);
+        }
+        
+        if (result == NULL) {
+            int *temp_array = malloc(n*sizeof(int));
+            status = pn_exhaustive_search(n, c, a_eqv_cl_array, b_eqv_cl_list,
+                                          g_a_mat, g_b_mat, temp_array);
+            free(temp_array);
+        } else {
+            status = pn_exhaustive_search(n, c, a_eqv_cl_array, b_eqv_cl_list,
+                                          g_a_mat, g_b_mat, result);
+        }
+        
+        for (i = 0; i < c; i++) {
+            il_free(b_eqv_cl_list[i]);
+        }
+        free(b_eqv_cl_list);
     }
 
     free(a_eqv_cl_array);
     free(b_eqv_cl_array);
-    for (i = 0; i < c; i++) {
-        il_free(b_eqv_cl_list[i]);
-    }
-    free(b_eqv_cl_list);
 
 find_isomorphism_exit:
 
@@ -291,6 +294,42 @@ compute_equiv_classes_pn_exit:
     return status;
 }
 
+int neighborhood_check(int n, graph_list *g_a, graph_list *g_b,
+                       int *a_eqv_cl_array, int *b_eqv_cl_array,
+                       matched_partitions *partitions) {
+    int status = NO_STATUS;
+    int i,j;
+    int_list *p;
+    
+    int64_t *a_num_neighbors_in_class = malloc(n*sizeof(int64_t));
+    int64_t *b_num_neighbors_in_class = malloc(n*sizeof(int64_t));
+
+    /* repeat n times for theoretical reasons */
+    for (i = 0; i < n; i++) {
+
+        for (j = 0; j < n; j++) {
+            a_num_neighbors_in_class[j] = 0;
+            for (p = g_a->list_array[j]; p != NULL; p = p->next) {
+                if (a_eqv_cl_array[p->x] == i)
+                    a_num_neighbors_in_class[j] += 1;
+            } 
+            b_num_neighbors_in_class[j] = 0;
+            for (p = g_b->list_array[j]; p != NULL; p = p->next) {
+                if (b_eqv_cl_array[p->x] == i)
+                    b_num_neighbors_in_class[j] += 1;
+            }
+            refine_matched_partitions(partitions,
+                                      a_num_neighbors_in_class,
+                                      b_num_neighbors_in_class);
+        }
+
+        tag_arrays_with_matched_partition(partitions,
+                                          a_eqv_cl_array,
+                                          b_eqv_cl_array);
+    }
+
+    return status;
+}
 
 
 struct choice_stack {
@@ -332,7 +371,7 @@ int pn_exhaustive_search(int n, int c,
             cs = cs->rest;
             v_a = cs->a_vertex;
             free(tmp);
-            if (cs == NULL) return 0;
+            if (cs == NULL) return NO_ISOM;
         }
         /* try next possibility */
         result[v_a] = cs->b_untested->x;
@@ -347,7 +386,7 @@ int pn_exhaustive_search(int n, int c,
             }
         }
 
-        if (v_a == n-1 && partial_ok) return 1;
+        if (v_a == n-1 && partial_ok) return ISOM_FOUND;
     }
 }
 

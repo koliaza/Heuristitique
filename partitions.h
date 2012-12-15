@@ -23,6 +23,7 @@ void free_matched_partitions(matched_partitions *pp);
 double possible_matchings_count(const int_list *boundaries);
 int refine_matched_partitions(matched_partitions *pp,
                               const int64_t *keys_a, const int64_t *keys_b);
-
+int tag_arrays_with_matched_partition(matched_partitions *pp,
+                                      int *a_array, int *b_array);
 
 #endif

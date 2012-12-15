@@ -77,3 +77,18 @@ int refine_matched_partitions(matched_partitions *pp,
     return 1;
 }
 
+/* return value : number of subsets in partition */
+int tag_arrays_with_matched_partition(matched_partitions *pp,
+                                      int *a_array, int *b_array) {
+    int c = -1;
+    int i;
+    int_list *p;
+    for (p = pp->boundaries; p->next != NULL; p = p->next) {
+        c++;
+        for (i = p->x; i < p->next->x; i++) {
+            a_array[pp->array_a[i]] = c;
+            b_array[pp->array_b[i]] = c;
+        }
+    }
+    return (c+1);
+}

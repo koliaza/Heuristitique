@@ -9,6 +9,9 @@ int64_t addp(int64_t x, int64_t y) {
     return ((x+y) % PRIME);
 }
 
+int64_t addpsmall(int64_t x, int64_t y) {
+    return ((x+y) % PRIMESMALL);
+}
 
 int64_t mulp(int64_t x, int64_t y) {
     int i;
@@ -57,6 +60,21 @@ int64_t* matrix_mulp(int n, const int64_t *a, const int64_t *b, int64_t *r) {
             x = 0;
             for (k = 0; k < n; k++) {
                 x = addp(x, mulp(a[i*n+k], b[k*n+j]));
+            }
+            r[i*n+j] = x;
+        }
+    }
+    return r;
+}
+
+int64_t* matrix_mulpsmall(int n, const int64_t *a, const int64_t *b, int64_t *r) {
+    int i, j, k;
+    int64_t x;
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            x = 0;
+            for (k = 0; k < n; k++) {
+                x = addpsmall(x, mulpsmall(a[i*n+k], b[k*n+j]));
             }
             r[i*n+j] = x;
         }

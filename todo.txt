@@ -2,7 +2,7 @@ TODO
 urgent
 add the five primary tests with lists -> partial progress
 data structure for equivalence classes -> done
-check neighbours of the PN arrays -> not yet done
+check neighbours of the PN arrays -> done and fucking done !
 
 less important
 follow the number of possibilities and state of the program --> done
@@ -11,5 +11,5 @@ fix k-regular generator
 
 less
 in the 2-graph comparison case compare at each multiplication of PN --> done
-update the report to take implementation and modifications into account 
+update the report to take implementation and modifications into account --> kolia's job
 handle --verbose flag

@@ -12,10 +12,12 @@
 #include <inttypes.h>
 
 int64_t addp(int64_t x, int64_t y);
+int64_t addpsmall(int64_t x, int64_t y);
 int64_t mulp(int64_t x, int64_t y);
 
 int64_t* matrix_addp(int n, const int64_t *a, const int64_t *b, int64_t *r);
 int64_t* matrix_mulp(int n, const int64_t *a, const int64_t *b, int64_t *r);
+int64_t* matrix_mulpsmall(int n, const int64_t *a, const int64_t *b, int64_t *r);
 
 void copy_int_array_to_int64(int n, const int *src, int64_t *dest);
 
