@@ -117,7 +117,7 @@ int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
     }
 
     /** After doing a lot of work to lower the number of possible
-        paring of vertices between the 2 graphs, we turn to brute-forcing
+        pairing of vertices between the 2 graphs, we turn to brute-forcing
         intelligently with a backtracking algorithm **/
     if (status != NO_ISOM) {
         int_list **b_eqv_cl_list = malloc(c*sizeof(void*));
@@ -315,7 +315,7 @@ int neighborhood_check(int n, graph_list *g_a, graph_list *g_b,
     int64_t *a_num_neighbors_in_class = malloc(n*sizeof(int64_t));
     int64_t *b_num_neighbors_in_class = malloc(n*sizeof(int64_t));
 
-    /* repeat n times for theoretical reasons */
+    /* repeat n times for theoretical reasons, could be optimized to stop when it cycles */
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
             a_num_neighbors_in_class[j] = 0;
@@ -352,7 +352,7 @@ int pn_exhaustive_search(int n, int c,
                          int *a_eqv_cl_array, int_list **b_eqv_cl_list,
                          graph_matrix *g_a,   graph_matrix *g_b,
                          int *result) {
-    /* the result array is used to store the tentative partial isomorphisms */
+    /* the result array is used to store the potential partial isomorphisms */
     int v_a = -1;
     int i;
     int partial_ok = 1;
