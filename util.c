@@ -167,6 +167,8 @@ int il_equal(const int_list *l1, const int_list *l2) {
 
 /* The insert/remove functions might not have great performance
    because they do a lot of branching */
+   
+/*** Sorted linked lists ***/
 
 int_list* il_s_insert(int x, int_list *l) {
     int_list *p, *q;
@@ -292,7 +294,7 @@ int* matrix_mult(int n, const int *a, const int *b, int *r) {
     return r;
 }
 
-/* fast exponentiation algorithm */
+/* fast exponentiation algorithm, not used anymore but could be useful in a primary test */
 int* matrix_exp(int n, const int *a, int m, int *r) {
     /* it would be possible to do one less allocation here
        at the cost of a memmove()

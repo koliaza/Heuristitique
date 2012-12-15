@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
     if (strcmp(argv[1], "--verbose") == 0) {
         if (argc == 2) usage();
         verbose = 1;
-        argv++;
+        argv++; //small hack to make it easier
         argc--;
     }
 
