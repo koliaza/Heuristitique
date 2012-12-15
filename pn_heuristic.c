@@ -103,10 +103,13 @@ int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
                                           a_eqv_cl_array, b_eqv_cl_array);
 
     /** ... **/
-    
+
     if (status != SKIP_TO_BRUTEFORCE) {
         status = neighborhood_check(n, g_a, g_b, a_eqv_cl_array, b_eqv_cl_array,
                                     &partitions);
+        c = tag_arrays_with_matched_partition(&partitions,
+                                              a_eqv_cl_array, b_eqv_cl_array);
+        printf("Number of possibilities left after the core PN heuristic + neighborhood check : %lf\n", possible_matchings_count(partitions.boundaries));
     }
 
     /** After doing a lot of work to lower the number of possible
@@ -240,9 +243,9 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
     /* since we should already have discriminated on the degrees at this step,
        we can start at the 2nd power */
     copy_int_array_to_int64(n*n, g_a->matrix, a64);
-    matrix_mulp(n, a64, a64, a_pow);
+    matrix_mulpsmall(n, a64, a64, a_pow);
     copy_int_array_to_int64(n*n, g_b->matrix, b64);
-    matrix_mulp(n, b64, b64, b_pow);
+    matrix_mulpsmall(n, b64, b64, b_pow);
 
     /** Main loop **/
     /* invariant : A_pow = A^(i+1) */
@@ -256,8 +259,8 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
             for (k = 0; k < n; k++) {
                 neighbors_a[j] += (a_pow[j*n+k] != 0);
                 neighbors_b[j] += (b_pow[j*n+k] != 0);
-                paths_a[j] = addp(paths_a[j], a_pow[j*n+k]);
-                paths_b[j] = addp(paths_b[j], b_pow[j*n+k]);
+                paths_a[j] = addpsmall(paths_a[j], a_pow[j*n+k]);
+                paths_b[j] = addpsmall(paths_b[j], b_pow[j*n+k]);
             }
         }
 
@@ -278,9 +281,9 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
         }
 
         /* update for next iteration */
-        matrix_mulp(n, a64, a_pow, tmp);
+        matrix_mulpsmall(n, a64, a_pow, tmp);
         memcpy(a_pow, tmp, mat64size);
-        matrix_mulp(n, b64, b_pow, tmp);
+        matrix_mulpsmall(n, b64, b_pow, tmp);
         memcpy(b_pow, tmp, mat64size);
     }
     
@@ -306,7 +309,6 @@ int neighborhood_check(int n, graph_list *g_a, graph_list *g_b,
 
     /* repeat n times for theoretical reasons */
     for (i = 0; i < n; i++) {
-
         for (j = 0; j < n; j++) {
             a_num_neighbors_in_class[j] = 0;
             for (p = g_a->list_array[j]; p != NULL; p = p->next) {
@@ -318,11 +320,10 @@ int neighborhood_check(int n, graph_list *g_a, graph_list *g_b,
                 if (b_eqv_cl_array[p->x] == i)
                     b_num_neighbors_in_class[j] += 1;
             }
-            refine_matched_partitions(partitions,
-                                      a_num_neighbors_in_class,
-                                      b_num_neighbors_in_class);
         }
-
+        refine_matched_partitions(partitions,
+                                  a_num_neighbors_in_class,
+                                  b_num_neighbors_in_class);
         tag_arrays_with_matched_partition(partitions,
                                           a_eqv_cl_array,
                                           b_eqv_cl_array);
@@ -369,9 +370,9 @@ int pn_exhaustive_search(int n, int c,
         while (cs->b_untested == NULL) {
             tmp = cs;
             cs = cs->rest;
-            v_a = cs->a_vertex;
             free(tmp);
             if (cs == NULL) return NO_ISOM;
+            v_a = cs->a_vertex;
         }
         /* try next possibility */
         result[v_a] = cs->b_untested->x;
