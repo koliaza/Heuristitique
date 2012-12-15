@@ -36,7 +36,8 @@ edges of a graph according to the following rules :
 (this is the 1-dimensional version).
 \item At each pass, the color of each vertex is determined by the number
 of neighbours of color c for each c.
-\item After at most n passes, the colors don't change anymore.
+\item After at most n passes, the colors don't change anymore. We then make
+one random choice and use backtracking before coloring again. 
 \end{itemize}
 Two isomorphic graphs admit the same coloring, but the converse does
 not always hold: k-regular graphs for example are pathological cases
@@ -57,7 +58,7 @@ and $P_{k}(x)=P_{k}(f(x))$. Thus, by computing the different $N_{x}$
 and $P_{x}$ we can prune the search tree and limit the possibilities.
 We name the array of couples $P_{k}(x),N_{k}(x)$ for k between 1
 and n PN(x), and compute an array containing PN(x) for each x, obtaining
-the PN arrays. 
+the PN-arrays. 
 
 
 \subsubsection{Structure of the algorithm}
@@ -74,12 +75,6 @@ easy cases)
 \item If possible construction of an isomorphism by refined bruteforce
 \end{enumerate}
 
-\subsection{Tests and Benchmark}
-
-We have four test generation programs, to create G(n,p) graphs, G(n,m)
-graphs, k-regular graphs and to create an isomorphic copy of any graph. 
-
-
 \section{Comparison with Weisfeiler-Lehman}
 
 
@@ -91,7 +86,7 @@ an extended version of WL which is very similar and facilitates the
 analysis (even though it is much less efficient in practice). The
 proof is done by considering the cases when WL prunes efficiently
 the search tree and by showing by induction that PN does the same
-in those cases. 
+in those cases. The detailed proof is in the long report. 
 
 
 \subsection{Complexity analysis}
@@ -104,46 +99,14 @@ This means that WL (which can run in $O(nm)$) is often more efficient,
 but PN is safer (the pathological cases are not as frequent).
 
 
-\section{Implementation and Optimization}
+\subsection{Problems, optimization, and improvements}
 
-
-\subsection{Data Structures}
-
-The choice of data structures varies between adjacency matrix and
-list, and sometimes both, and allows us to take advantage of faster
-algorithms on sparse graphs using lists, while allowing us to know
-in O(1) if two vertices are linked. 
-
-The construction of the PN-array is generally the most time-expensive
-task, it is mostly done by multiplication of the adjacency matrix.
-Sorting the PN-array is easily done with a heapsort. 
-
-The construction of the isomorphism is done by trying to assign to
-an x an y such that$N(x)=N(y)$ and backtracking when unsuccessful. 
-
-
-\subsection{Function Optimization}
-
-As with many graph algorithms, PN can be improved by using adjacency
-lists in the case of sparse graphs. However, that seldom changes the
-asymptotic complexity, as the PN-array generation can only benefit
-from it in case of graphs with very poor expansion properties. The
-list representation is mostly used in the primary test phase, where
-it allows us to have tests in $O(m)$ instead of $O(n^{2})$. Optimization
-on the matrix operations cannot really be done in practice as Strassen's
-algorithm has no interest on the matrix size we generally consider.
-However we took care of memory locality in their representation, which
-might improve the performance in practice. 
-
-
-\subsection{Parallelism}
-
-The advantage of the PN-arrays is that they can be generated in a
-completely independent fashion, and so are easy to parallelize. By
-default we create a different thread for each graph, which gives a
-speed-up ratio close to 2 in the basic case, but that can grow up
-to the number of cores when launched on a set of graphs. This is an
-advantage of PN over WL as the threads do not have to communicate,
-while the latter has to do some comparisons between each coloring
-at each run, requiring constant interaction between threads.
+The biggest problem was that the numbers in the PN-arrays quickly
+grow out of proportions so one has to to multiplication modulo p,
+which means that our implementation is only probabilistic. PN might
+be improved by using adjacency lists in the case of sparse graphs,
+but this would require a lot of new code for an improvement that might
+not be sizeable. Some other improvements would target optimization
+of the mulp function, parallelization inside the matrix multiplication
+and interlacing neighbourhood checks with PN-array generation.
 \end{document}

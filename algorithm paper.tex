@@ -78,7 +78,8 @@ edges of a graph according to the following rules :
 (this is the 1-dimensional version).
 \item At each pass, the color of each vertex is determined by the number
 of neighbours of color c for each c.
-\item After at most n passes, the colors don't change anymore.
+\item After at most n passes, the colors don't change anymore. We then make
+one random choice and use backtracking before coloring again. 
 \end{itemize}
 These rules actually only produce a certificate of non-isomorphism.
 To construct an isomorphism using WL one uses backtracking coupled
@@ -218,7 +219,7 @@ n in G(n,p) & p & time\tabularnewline
 \hline 
 2000 & 0.5 & 10.5\tabularnewline
 \hline 
-\end{tabular} %
+\end{tabular}~~~~%
 \begin{tabular}{|c|c|c|}
 \hline 
 n in G(n,M) & M & time\tabularnewline
@@ -236,7 +237,7 @@ n in G(n,M) & M & time\tabularnewline
 \hline 
 20000 & 2000000 & 5.0\tabularnewline
 \hline 
-\end{tabular} %
+\end{tabular}~~~~%
 \begin{tabular}{|c|c|c|}
 \hline 
 n  & k-regular & time\tabularnewline
@@ -286,7 +287,7 @@ n in G(n,M) & M & time\tabularnewline
 \hline 
 20000 & 2000000 & 5.4\tabularnewline
 \hline 
-\end{tabular} %
+\end{tabular}~~~~%
 \begin{tabular}{|c|c|c|}
 \hline 
 n  & k-regular & time\tabularnewline
@@ -333,7 +334,7 @@ n in G(n,p) & p & time\tabularnewline
 \hline 
 500 & 0.2 & 8.5\tabularnewline
 \hline 
-\end{tabular}%
+\end{tabular}~~~~%
 \begin{tabular}{|c|c|c|}
 \hline 
 n  & k-regular & time{*}\tabularnewline
@@ -573,6 +574,8 @@ all simple transpositions, which runs quite fast. That kind of method
 might come in handy when the two graphs are very ``close'' (i.e.
 we could imagine that there is a perturbation on the order the vertices
 are received).
+\item A very efficient Strassen multiplication might also be useful, mostly
+if we want to run PN on bigger graphs. 
 \end{itemize}
 \bibliographystyle{plain}
 \bibliography{\string"bibliography algorithms\string"}

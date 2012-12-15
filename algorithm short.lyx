@@ -133,6 +133,8 @@ At each pass, the color of each vertex is determined by the number of neighbours
 
 \begin_layout Itemize
 After at most n passes, the colors don't change anymore.
+ We then make one random choice and use backtracking before coloring again.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -197,7 +199,7 @@ Let
 \end_inset
 
  for k between 1 and n PN(x), and compute an array containing PN(x) for
- each x, obtaining the PN arrays.
+ each x, obtaining the PN-arrays.
  
 \end_layout
 
@@ -232,16 +234,6 @@ Comparison of the PN-arrays using the neighbours
 If possible construction of an isomorphism by refined bruteforce
 \end_layout
 
-\begin_layout Subsection
-Tests and Benchmark
-\end_layout
-
-\begin_layout Standard
-We have four test generation programs, to create G(n,p) graphs, G(n,m) graphs,
- k-regular graphs and to create an isomorphic copy of any graph.
- 
-\end_layout
-
 \begin_layout Section
 Comparison with Weisfeiler-Lehman
 \end_layout
@@ -258,6 +250,7 @@ We can show that PN behaves polynomially on a subset of problems that strictly
  The proof is done by considering the cases when WL prunes efficiently the
  search tree and by showing by induction that PN does the same in those
  cases.
+ The detailed proof is in the long report.
  
 \end_layout
 
@@ -294,80 +287,20 @@ As the GI problem isn't known to be in P, it is not absurd to have a worst
  as frequent).
 \end_layout
 
-\begin_layout Section
-Implementation and Optimization
-\end_layout
-
 \begin_layout Subsection
-Data Structures
+Problems, optimization, and improvements
 \end_layout
 
 \begin_layout Standard
-The choice of data structures varies between adjacency matrix and list,
- and sometimes both, and allows us to take advantage of faster algorithms
- on sparse graphs using lists, while allowing us to know in O(1) if two
- vertices are linked.
- 
-\end_layout
-
-\begin_layout Standard
-The construction of the PN-array is generally the most time-expensive task,
- it is mostly done by multiplication of the adjacency matrix.
- Sorting the PN-array is easily done with a heapsort.
- 
-\end_layout
-
-\begin_layout Standard
-The construction of the isomorphism is done by trying to assign to an x
- an y such that
-\begin_inset Formula $N(x)=N(y)$
-\end_inset
-
- and backtracking when unsuccessful.
- 
-\end_layout
-
-\begin_layout Subsection
-Function Optimization
-\end_layout
-
-\begin_layout Standard
-As with many graph algorithms, PN can be improved by using adjacency lists
- in the case of sparse graphs.
- However, that seldom changes the asymptotic complexity, as the PN-array
- generation can only benefit from it in case of graphs with very poor expansion
- properties.
- The list representation is mostly used in the primary test phase, where
- it allows us to have tests in 
-\begin_inset Formula $O(m)$
-\end_inset
-
- instead of 
-\begin_inset Formula $O(n^{2})$
-\end_inset
-
-.
- Optimization on the matrix operations cannot really be done in practice
- as Strassen's algorithm has no interest on the matrix size we generally
- consider.
- However we took care of memory locality in their representation, which
- might improve the performance in practice.
- 
-\end_layout
-
-\begin_layout Subsection
-Parallelism
-\end_layout
-
-\begin_layout Standard
-The advantage of the PN-arrays is that they can be generated in a completely
- independent fashion, and so are easy to parallelize.
- By default we create a different thread for each graph, which gives a speed-up
- ratio close to 2 in the basic case, but that can grow up to the number
- of cores when launched on a set of graphs.
- This is an advantage of PN over WL as the threads do not have to communicate,
- while the latter has to do some comparisons between each coloring at each
- run, requiring constant interaction between threads.
+The biggest problem was that the numbers in the PN-arrays quickly grow out
+ of proportions so one has to to multiplication modulo p, which means that
+ our implementation is only probabilistic.
+ PN might be improved by using adjacency lists in the case of sparse graphs,
+ but this would require a lot of new code for an improvement that might
+ not be sizeable.
+ Some other improvements would target optimization of the mulp function,
+ parallelization inside the matrix multiplication and interlacing neighbourhood
+ checks with PN-array generation.
 \end_layout
 
 \end_body

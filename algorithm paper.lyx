@@ -234,6 +234,8 @@ At each pass, the color of each vertex is determined by the number of neighbours
 
 \begin_layout Itemize
 After at most n passes, the colors don't change anymore.
+ We then make one random choice and use backtracking before coloring again.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -732,7 +734,23 @@ time
 
 \end_inset
 
- 
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="3">
 <features tabularvalignment="middle">
@@ -946,7 +964,23 @@ time
 
 \end_inset
 
- 
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="3">
 <features tabularvalignment="middle">
@@ -1412,7 +1446,23 @@ time
 
 \end_inset
 
- 
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="3">
 <features tabularvalignment="middle">
@@ -1873,6 +1923,22 @@ time
 </row>
 </lyxtabular>
 
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
 \end_inset
 
 
@@ -2534,6 +2600,12 @@ close
  (i.e.
  we could imagine that there is a perturbation on the order the vertices
  are received).
+\end_layout
+
+\begin_layout Itemize
+A very efficient Strassen multiplication might also be useful, mostly if
+ we want to run PN on bigger graphs.
+ 
 \end_layout
 
 \begin_layout Standard
