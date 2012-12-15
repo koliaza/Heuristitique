@@ -1,7 +1,26 @@
+#include <stdlib.h>
+
 #include "partitions.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+
+/** All this code contains some duplication to handle both
+    partitions of one set and partitions of two sets with matching
+    between the equivalence classes of the 2 sets **/
+
+partition* init_partition(int n, partition *p) {
+    int i;
+    p->boundaries = il_cons(0, il_singleton(n));
+    p->array = malloc(n*sizeof(int));
+    for (i = 0; i < n; i++) {
+        p->array[i] = i;
+    }
+    return p;
+}
+
+void free_partition(partition *p) {
+    il_free(p->boundaries);
+    free(p->array);
+}
 
 matched_partitions* init_matched_partitions(int n, matched_partitions *pp) {
     int i;
@@ -40,6 +59,31 @@ int compare_with_keys(const void *x, const void *y, void *keys) {
     else return 1;
 }
 
+void refine_partition(partition *part, const int64_t *keys) {
+    int_list *p, *q;
+    int start, end;
+    int i;
+    int64_t cur_key, new_key;
+
+    for (p = part->boundaries; p->next != NULL; p = p->next) {
+        start = p->x;
+        end = p->next->x;
+        
+        merge_sort_with_keys(end-start, part->array + start, keys);
+        
+        cur_key = keys[part->array[start]];
+        q = p;
+        for (i = start+1; i < end; i++) {
+            new_key = keys[part->array[i]];
+            if (new_key != cur_key) {
+                cur_key = new_key;
+                q->next = il_cons(i, q->next);
+                q = q->next;
+            }
+        }
+    }
+}
+
 int refine_matched_partitions(matched_partitions *pp,
                               const int64_t *keys_a, const int64_t *keys_b) {
     int_list *p, *q;
@@ -51,10 +95,8 @@ int refine_matched_partitions(matched_partitions *pp,
         start = p->x;
         end = p->next->x; /* memory location after the end */  
         
-        qsort_r(pp->array_a + start, end-start, sizeof(int),
-                compare_with_keys, keys_a);
-        qsort_r(pp->array_b + start, end-start, sizeof(int),
-                compare_with_keys, keys_b);
+        merge_sort_with_keys(end-start, pp->array_a + start, keys_a);
+        merge_sort_with_keys(end-start, pp->array_b + start, keys_b);
         
         cur_key = keys_a[pp->array_a[start]];
         if (cur_key != keys_b[pp->array_b[start]]) {
@@ -77,7 +119,19 @@ int refine_matched_partitions(matched_partitions *pp,
     return 1;
 }
 
-/* return value : number of subsets in partition */
+int tag_array_with_partition(partition *part, int *tagged_array) {
+    int c = -1;
+    int i;
+    int_list *p;
+    for (p = part->boundaries; p->next != NULL; p = p->next) {
+        c++;
+        for (i = p->x; i < p->next->x; i++) {
+            tagged_array[part->array[i]] = c;
+        }
+    }
+    return (c+1);
+}
+
 int tag_arrays_with_matched_partition(matched_partitions *pp,
                                       int *a_array, int *b_array) {
     int c = -1;

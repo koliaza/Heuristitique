@@ -42,16 +42,39 @@ void test_2_graphs(char *file1, char *file2) {
 void test_multiple_graphs(char *directory_path) {
     DIR *dir;
     struct dirent *entry;
+    int array_size = 16;
+    graph_list **graphs = malloc(array_size*sizeof(void*));
+    int graph_count = 0;
+    int *isom_classes;
+    FILE *f;
+
     dir = opendir(directory_path);
-    if (dir != NULL) {
-        while ((entry = readdir (dir)) != NULL) {
-            if (!(strcmp(entry->d_name, ".") == 0) &&
-                !(strcmp(entry->d_name, "..") == 0)) {
-                
+    if (dir == NULL) exit(1);
+    while ((entry = readdir (dir)) != NULL) {
+        if (!(strcmp(entry->d_name, ".") == 0) &&
+            !(strcmp(entry->d_name, "..") == 0)) {
+            graph_count++;
+            if (graph_count > array_size) {
+                graph_list **tmp = malloc(2*array_size*sizeof(void*));
+                memcpy(tmp, graphs, array_size*sizeof(void*));
+                free(graphs);
+                array_size *= 2;
+                graphs = tmp;
             }
+            f = fopen(entry->d_name, "r");
+            graphs[graph_count - 1] = fget_graph_list(f, NULL);
+            fclose(f);
         }
-        closedir (dir);
-    } 
+    }
+
+    isom_classes = malloc(graph_count * sizeof(int));
+    find_multiple_isomorphisms(graph_count, graphs, isom_classes);
+
+    closedir (dir);
+    int i;
+    for (i = 0; i < graph_count; i++)
+        gl_free(graphs[i]);
+    free(graphs);
 }
 
 void usage() {

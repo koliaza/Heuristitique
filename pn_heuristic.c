@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <pthread.h>
 
 #include "graph.h"
 #include "matrix_mod.h"
@@ -27,7 +27,7 @@ int compute_equiv_classes_pn(int, graph_matrix*, graph_matrix*,
 int neighborhood_check(int n, graph_list *g_a, graph_list *g_b,
                        int *a_eqv_cl_array, int *b_eqv_cl_array,
                        matched_partitions *partitions);
-int pn_exhaustive_search(int, int, int*, int_list**,
+int pn_exhaustive_search(int, int, int*, int*,
                          graph_matrix*, graph_matrix*, int*);
 
 
@@ -119,29 +119,17 @@ int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
     /** After doing a lot of work to lower the number of possible
         paring of vertices between the 2 graphs, we turn to brute-forcing
         intelligently with a backtracking algorithm **/
+
     if (status != NO_ISOM) {
-        int_list **b_eqv_cl_list = malloc(c*sizeof(void*));
-        for (i = 0; i < c; i++) 
-            b_eqv_cl_list[i] = NULL;
-        for (i = 0; i < n; i++) {
-            b_eqv_cl_list[b_eqv_cl_array[i]] =
-                il_cons(i, b_eqv_cl_list[b_eqv_cl_array[i]]);
-        }
-        
         if (result == NULL) {
             int *temp_array = malloc(n*sizeof(int));
-            status = pn_exhaustive_search(n, c, a_eqv_cl_array, b_eqv_cl_list,
+            status = pn_exhaustive_search(n, c, a_eqv_cl_array, b_eqv_cl_array,
                                           g_a_mat, g_b_mat, temp_array);
             free(temp_array);
         } else {
-            status = pn_exhaustive_search(n, c, a_eqv_cl_array, b_eqv_cl_list,
+            status = pn_exhaustive_search(n, c, a_eqv_cl_array, b_eqv_cl_array,
                                           g_a_mat, g_b_mat, result);
         }
-        
-        for (i = 0; i < c; i++) {
-            il_free(b_eqv_cl_list[i]);
-        }
-        free(b_eqv_cl_list);
     }
 
     free(a_eqv_cl_array);
@@ -349,15 +337,26 @@ struct choice_stack {
 };
 
 int pn_exhaustive_search(int n, int c,
-                         int *a_eqv_cl_array, int_list **b_eqv_cl_list,
+                         int *a_eqv_cl_array, int *b_eqv_cl_array,
                          graph_matrix *g_a,   graph_matrix *g_b,
                          int *result) {
+    int status = NO_STATUS;
+
     /* the result array is used to store the tentative partial isomorphisms */
     int v_a = -1;
     int i;
     int partial_ok = 1;
     struct choice_stack *cs = NULL;
     struct choice_stack *tmp = NULL;
+
+    int_list **b_eqv_cl_list = malloc(c*sizeof(void*));
+    for (i = 0; i < c; i++) 
+        b_eqv_cl_list[i] = NULL;
+    for (i = 0; i < n; i++) {
+        b_eqv_cl_list[b_eqv_cl_array[i]] =
+            il_cons(i, b_eqv_cl_list[b_eqv_cl_array[i]]);
+    }
+
     for (;;) {
         /* if everything goes well, try one more vertex */
         if (partial_ok) {
@@ -381,7 +380,10 @@ int pn_exhaustive_search(int n, int c,
             tmp = cs;
             cs = cs->rest;
             free(tmp);
-            if (cs == NULL) return NO_ISOM;
+            if (cs == NULL) {
+                status = NO_ISOM;
+                goto pn_exhaustive_search_exit;
+            }
             v_a = cs->a_vertex;
         }
         /* try next possibility */
@@ -398,8 +400,20 @@ int pn_exhaustive_search(int n, int c,
             }
         }
 
-        if (v_a == n-1 && partial_ok) return ISOM_FOUND;
+        if (v_a == n-1 && partial_ok) {
+            status = ISOM_FOUND;
+            break;
+        }
     }
+
+pn_exhaustive_search_exit:
+        
+    for (i = 0; i < c; i++) {
+        il_free(b_eqv_cl_list[i]);
+    }
+    free(b_eqv_cl_list);
+
+    return status;
 }
 
 
@@ -480,3 +494,122 @@ pn_array compute_pn_array(graph_matrix *g) {
     qsort_r(pn_array, n, sizeof(void*), compare_pn_entries, &n);
     return pn_array;
 }
+
+/****************************************************************/
+
+/***! On a set of multiple graphs ***/
+
+struct process_graph_args {
+    graph_list *graph_list_arg;
+    graph_matrix **matrix_dest;
+    pn_array *pn_array_dest;
+    int *class_num_dest;
+    int **tagged_array_dest;
+};
+
+void* process_graph(struct process_graph_args *args) {
+    graph_matrix *g_m = *(args->matrix_dest)
+                      = graph_list_to_matrix(args->graph_list_arg);
+    pn_array pn = *(args->pn_array_dest) = compute_pn_array(g_m);
+    
+    int i;
+    int c = 0; /* c : index of current equiv class */
+    int *arr = *(args->tagged_array_dest) = malloc(g_m->n * sizeof(int));
+    int *cur_neighbors = pn[0]->neighbors;
+    int64_t *cur_paths = pn[0]->paths;
+    arr[pn[0]->vertex] = 0;
+    for (i = 1; i < g_m->n; i++) {
+        /* these comparisons could be improved with hashes */
+        if (memcmp(pn[i]->neighbors, cur_neighbors, g_m->n*sizeof(int)) != 0
+            || memcmp(pn[i]->paths, cur_paths, g_m->n*sizeof(int64_t)) != 0)
+        {
+            c++;
+            cur_neighbors = pn[i]->neighbors;
+            cur_paths     = pn[i]->paths;
+        }
+        arr[pn[i]->vertex] = c;
+    }
+    *args->class_num_dest = c + 1;
+
+    return NULL;
+}
+
+void find_multiple_isomorphisms(int graph_count, graph_list **graphs,
+                                int *isom_classes) {
+}
+/*
+void find_multiple_isomorphisms(int graph_count, graph_list **graphs,
+                                int *isom_classes) {
+    int i, j, k;
+    struct process_graph_args args;
+    graph_matrix **matrices = malloc(graph_count*sizeof(void*));
+    pn_array **pn_arrays = malloc(graph_count*sizeof(void*));
+    pthread_t *threads = malloc(graph_count*sizeof(pthread_t));
+    int *class_nums = malloc(graph_count*sizeof(int));
+    int **tagged_arrays = malloc(graph_count*sizeof(void*));
+    
+    for (i = 0; i < graph_count; i++) {
+        args.graph_list_arg = graphs[i];
+        args.matrix_dest = matrices + i;
+        args.pn_array_dest = pn_arrays + i;
+        pthread_create(threads + i, NULL,
+                       (void * (*)(void *))process_graph, &args);
+    }
+    for (i = 0; i < graph_count; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    int64_t *keys = malloc(graph_count*sizeof(void*));
+    partition part;
+    init_partition(&part);
+
+    for (i = 0; i < graph_count; i++) {
+        for (j = 0; j < graph_count; j++) {
+            for (k = 0; k < graph_count; k++) {
+                keys[k] = pn_arrays[k][i]->neighbors[j];
+            }
+            refine_partition(part, keys);
+        }
+    }
+    for (i = 0; i < graph_count; i++) {
+        for (j = 0; j < graph_count; j++) {
+            for (k = 0; k < graph_count; k++) {
+                keys[k] = pn_arrays[k][i]->paths[j];
+            }
+            refine_partition(part, keys);
+        }
+    }
+    
+    int_list *p;
+    int start, end;
+    int tmp;
+    int *useless_result = malloc( * sizeof(int))
+    for (p = part->boundaries; p->next != NULL; p = p->next) {
+        start = p->x;
+        end = p->next->x;
+        i = start;
+        while (i < end) {
+            k = i+1;
+            for (j = i+1; i < end; j++) {
+                if (pn_exhaustive
+            }
+        }
+    }
+    
+    tag_array_with_partition(part, isom_classes);
+
+    free_partition(&partition);
+    for (i = 0; i < graph_count; i++) {
+        gm_free(matrices[i]);
+        free(pn_arrays[i]->neighbors);
+        free(pn_arrays[i]->paths);
+        free(pn_arrays[i]);
+        free(tagged_arrays[i]);
+    }
+    free(matrices);
+    free(pn_arrays);
+    free(threads);
+    free(class_nums);
+    free(tagged_arrays);
+}
+*/

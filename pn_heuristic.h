@@ -21,4 +21,9 @@ pn_array compute_pn_array(graph_matrix *a);
    a permutation of vertices which defines an isomorphism */
 int find_isomorphism(graph_list *a, graph_list *b, int *result);
 
+/* writes into the isom_classes array numbers such that 2 graphs
+   are isomorphic iff they have the same class number */
+void find_multiple_isomorphisms(int graph_count, graph_list **graphs,
+                                int *isom_classes);
+
 #endif
