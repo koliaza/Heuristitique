@@ -32,9 +32,9 @@ int generate_graph (int n, int kreg, double p, int m, int mode, char* file){
     return 0;
 }
 
-int generate_iso (int n, int kreg, double p, int m, int mode){
+int generate_iso (int n, int kreg, double p, int m, int mode, int numgraphs){
     FILE *f;
-    graph_list * gsource;
+    graph_matrix * gsource;
     graph_list * gcopy;
     int i;
     char * filename = malloc(20*sizeof(char)); 
@@ -42,25 +42,25 @@ int generate_iso (int n, int kreg, double p, int m, int mode){
     f = fopen("graph_iso_source","w");
     switch (mode){
         case 1:
-            gsource = graph_matrix_to_list(erdos_renyi_gnp(n,p));
+            gsource = erdos_renyi_gnp(n,p);
             break;
         case 2:
-            gsource = graph_matrix_to_list(erdos_renyi_gnm(n,m));
+            gsource = erdos_renyi_gnm(n,m);
             break;
         case 3:
-            gsource = graph_matrix_to_list(erdos_renyi_gnm_multi(n,m));
+            gsource = erdos_renyi_gnm_multi(n,m);
             break;
         case 4:
-            gsource = graph_matrix_to_list(random_k_regular(n,kreg));
+            gsource = random_k_regular(n,kreg);
             break;
         case 5:
-           gsource = graph_matrix_to_list(random_k_regular_multi(n,kreg));
+           gsource = random_k_regular_multi(n,kreg);
             break;
     }
-    fprint_graph_list(f, gsource);
+    fprint_graph_list(f, graph_matrix_to_list(gsource));
     fclose(f);
      for (i = 0; i < numgraphs; i++){
-            gcopy = random_isomorphic(g);
+            gcopy = random_isomorphic(gsource);
             sprintf(filename,"graph%04d",i );
             f = fopen(filename, "w");
             fprint_graph_list(f, gcopy);
@@ -85,22 +85,24 @@ int main(int argc, char **argv) {
         printf("iso  : 1 for generating graphs isomorphic to the first generated");
         return 0;
     } /* redundant test but it is better this way*/
-    n = argv[1];
-    numgraphs = argv[2];
-    p = argv[3];
-    m = argv[4];
-    kreg = argv[5];
-    mode = argv[6];
-    iso = argv[7];
+    n = atoi(argv[1]);
+    numgraphs = atoi(argv[2]);
+    p = atoi(argv[3]);
+    m = atoi(argv[4]);
+    kreg = atoi(argv[5]);
+    mode = atoi(argv[6]);
+    iso = atoi(argv[7]);
     srand(time(NULL));
     
   
-    if !(iso){ 
-        for (i = 0; i < numgraphs; i++){
+    if (!iso){ 
+        for (i = 1; i < numgraphs; i++){
             sprintf(filename,"graph%04d",i );
             generate_graph (n, kreg, p, m, mode, filename);
          }
-   else generate_iso(n, kreg, p, m, mode);
+   else {
+       generate_iso(n, kreg, p, m, mode, numgraphs);
+   }
    
     return 0;
 }
