@@ -7,8 +7,9 @@
 
 int main(int argc, char **argv) {
     const int n = 100;
-    const int k = 2000;
-    const double p = 0.666 - 0.12;
+    const int k = 6;
+    const double p = 0.2;
+    const int m = 2000000;
 
     FILE *f;
 
@@ -18,8 +19,8 @@ int main(int argc, char **argv) {
 
     srand(time(NULL));
     
-    g1m = erdos_renyi_gnp(n, p);
-    g2m = erdos_renyi_gnp(n, p);
+    g1m = random_k_regular(n,k);
+    g2m = random_k_regular(n,k);
     g3m = random_isomorphic(g1m);
 
     g1l = graph_matrix_to_list(g1m);

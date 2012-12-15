@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <string.h>
 
-/* for debug */
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -14,6 +13,7 @@
 #include "io.h"
 #include "partitions.h"
 
+extern int verbose;
 
 /* status info, propagated throughout the search */
 enum { NO_ISOM = 0, ISOM_FOUND = 1, SKIP_TO_BRUTEFORCE, NO_STATUS };
@@ -61,20 +61,23 @@ int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
     init_matched_partitions(n, &partitions);
 
     if (!connected_components_test(n, g_a, g_b, &partitions)) {
-        printf("The number/size of connected components differ\n");
+        if (verbose)
+            printf("The number/size of connected components differ\n");
         free_matched_partitions(&partitions);
         return 0;
     }
 
     if (!first_order_test(n, g_a, g_b, &partitions)) {
-        printf("Incompatible list of degrees\n");
+        if (verbose)
+            printf("Incompatible list of degrees\n");
         free_matched_partitions(&partitions);
         return 0;
     }
 
     possibilities = possible_matchings_count(partitions.boundaries);
-    printf("Number of possibilities remaining after the first tests: %lf\n",
-           possibilities);
+    if (verbose)
+        printf("Number of possibilities remaining after the first tests: %lf\n",
+               possibilities);
     if (possibilities <= n*n) { /* arbitrary choice of cutoff */
         status = SKIP_TO_BRUTEFORCE;
     } 
@@ -109,7 +112,8 @@ int find_isomorphism(graph_list *g_a, graph_list *g_b, int *result) {
                                     &partitions);
         c = tag_arrays_with_matched_partition(&partitions,
                                               a_eqv_cl_array, b_eqv_cl_array);
-        printf("Number of possibilities left after the core PN heuristic + neighborhood check : %lf\n", possible_matchings_count(partitions.boundaries));
+        if (verbose)
+            printf("Number of possibilities left after the core PN heuristic + neighborhood check : %lf\n", possible_matchings_count(partitions.boundaries));
     }
 
     /** After doing a lot of work to lower the number of possible
@@ -251,7 +255,8 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
     /* invariant : A_pow = A^(i+1) */
     for (i = 1; i < n; i++) {
 
-        printf("PN heuristic : iteration %d\n", i);
+        if (verbose)
+            printf("PN heuristic : iteration %d\n", i);
 
         for(j = 0; j < n; j++) {
             neighbors_a[j] = neighbors_b[j] = 0;
@@ -265,16 +270,19 @@ int compute_equiv_classes_pn(int n, graph_matrix *g_a, graph_matrix *g_b,
         }
 
         if (!refine_matched_partitions(partitions, neighbors_a, neighbors_b)) {
-            printf("incompatible neighbors\n");
+            if (verbose)
+                printf("incompatible neighbors\n");
             goto compute_equiv_classes_pn_exit;
         }
         if (!refine_matched_partitions(partitions, paths_a, paths_b)) {
-            printf("incompatible paths\n");
+            if (verbose)
+                printf("incompatible paths\n");
             goto compute_equiv_classes_pn_exit;
         }
         
         cnt = possible_matchings_count(partitions->boundaries);
-        printf("Reduced number of possibilities to %lf\n", cnt);
+        if (verbose)
+            printf("Reduced number of possibilities to %lf\n", cnt);
         if (cnt <= n*n) {
             status = 2;
             goto compute_equiv_classes_pn_exit;
@@ -355,9 +363,11 @@ int pn_exhaustive_search(int n, int c,
         if (partial_ok) {
             v_a++;
             
-            printf("Vertex %d of A : possibilities in B are ", v_a);
-            print_list(b_eqv_cl_list[a_eqv_cl_array[v_a]]);
-            putchar('\n');
+            if (verbose) {
+                printf("Vertex %d of A : possibilities in B are ", v_a);
+                print_list(b_eqv_cl_list[a_eqv_cl_array[v_a]]);
+                putchar('\n');
+            }
 
             /* stack push */
             tmp = cs;
@@ -377,7 +387,8 @@ int pn_exhaustive_search(int n, int c,
         /* try next possibility */
         result[v_a] = cs->b_untested->x;
         cs->b_untested = cs->b_untested->next;
-        printf("Testing A[%d] -> B[%d]\n", v_a, result[v_a]);
+        if (verbose)
+            printf("Testing A[%d] -> B[%d]\n", v_a, result[v_a]);
         
         partial_ok = 1;
         for (i = 0; i < v_a; i++) {
@@ -394,29 +405,20 @@ int pn_exhaustive_search(int n, int c,
 
 /*******************************************************/
 
-/** this is old
-    will be eliminated when the qsort_r replacement comes **/
-
-/* global var as implicit parameter
-   to compensate the lack of closures
-   IMPORTANT : it means you cannot run 2 comparisons
-   with different values of n in parallel
-*/
-static int pn_entry_vect_size;
 int compare_pn_entries_aux(const struct pn_entry *e1,
-                           const struct pn_entry *e2) {
+                           const struct pn_entry *e2,
+                           const int pn_entry_vect_size) {
     int x = memcmp(e1->neighbors, e2->neighbors,
                    pn_entry_vect_size * sizeof(int));
     if (x != 0) return x;
     else return memcmp(e1->paths, e2->paths,
                        pn_entry_vect_size * sizeof(int64_t));
 }
-int compare_pn_entries(const void *e1, const void *e2) {
+int compare_pn_entries(const void *e1, const void *e2, void *arg) {
     return compare_pn_entries_aux(*((struct pn_entry**)e1),
-                                  *((struct pn_entry**)e2));
+                                  *((struct pn_entry**)e2),
+                                  *((int*)arg));
 }
-
-
 
 typedef int64_t *p_matrix;
 typedef int *n_matrix;
@@ -475,7 +477,6 @@ pn_array compute_pn_array(graph_matrix *g) {
 
     /** One more final **/
 
-    pn_entry_vect_size = n;
-    qsort(pn_array, n, sizeof(void*), compare_pn_entries);
+    qsort_r(pn_array, n, sizeof(void*), compare_pn_entries, &n);
     return pn_array;
 }
