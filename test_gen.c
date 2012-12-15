@@ -33,14 +33,13 @@ int generate_graph (int n, int kreg, double p, int m, int mode, char* file){
     return 0;
 }
 
-int generate_iso (int n, int kreg, double p, int m, int mode, int numgraphs){
+int generate_iso (int n, int kreg, double p, int m, int mode, int numgraphs, char* prefix){
     FILE *f;
     graph_matrix * gsource;
     graph_list * gcopy;
     int i;
     char * filename = malloc(20*sizeof(char)); 
     
-    f = fopen("graph_iso_source","w");
     switch (mode){
         case 1:
             gsource = erdos_renyi_gnp(n,p);
@@ -58,11 +57,10 @@ int generate_iso (int n, int kreg, double p, int m, int mode, int numgraphs){
            gsource = random_k_regular_multi(n,kreg);
             break;
     }
-    fprint_graph_list(f, graph_matrix_to_list(gsource));
-    fclose(f);
-     for (i = 0; i < numgraphs; i++){
+    
+    for (i = 0; i < numgraphs; i++){
             gcopy = graph_matrix_to_list(random_isomorphic(gsource));
-            sprintf(filename,"graph%04d",i );
+            sprintf(filename,"%s%04d",prefix ,i );
             f = fopen(filename, "w");
             fprint_graph_list(f, gcopy);
             fclose(f);
@@ -73,37 +71,42 @@ int generate_iso (int n, int kreg, double p, int m, int mode, int numgraphs){
 }
 
 int main(int argc, char **argv) {
-    int n, kreg, numgraphs, m, mode, iso,i;
+    int n, numgraphs, mode, iso,i;
     double p = 0.0;
+    int kreg = 0, m = 0;
+    char* prefix;
+    
 
     char * filename = malloc(20*sizeof(char));
-    if ((argc != 8) || (strcmp(argv[1], "-help") == 0)) {
-        printf("'test_gen n numgraphs p m kreg mode iso' with :\n");
+    if (argc != 7) {
+        printf("'test_gen n numgraphs (p || m || kreg) mode iso fname' with :\n");
         printf("n : number of vertices, numgraphs : number graphs to generate\n");
         printf("p and m : as in G(n,p) and G(n,m), kreg : degree when k-regular\n");
         printf("mode : 1 for G(n,p), 2 for G(n,m), 3 for G(n,m) multigraph\n");
         printf("     : 4 for k-regular, 5 for k-regular multigraphs\n");
         printf("iso  : 1 for generating graphs isomorphic to the first generated\n");
+        printf("prefix  : name prefix for generated graphs\n");
         return 1;
     } /* redundant test but it is better this way*/
     n = atoi(argv[1]);
     numgraphs = atoi(argv[2]);
     p = atof(argv[3]);
-    m = atoi(argv[4]);
-    kreg = atoi(argv[5]);
-    mode = atoi(argv[6]);
-    iso = atoi(argv[7]);
+    m = atoi(argv[3]);
+    kreg = atoi(argv[3]);
+    mode = atoi(argv[4]);
+    iso = atoi(argv[5]);
+    prefix = argv[6];
     srand(time(NULL));
     
   
     if (!iso){ 
         for (i = 1; i < numgraphs; i++){
-            sprintf(filename,"graph%04d",i );
-            generate_graph (n, kreg, p, m, mode, filename);
+            sprintf(filename,"%s%04d",prefix, i );
+            generate_graph (n, kreg, p, m, mode, filename );
          }
     }
    else {
-       generate_iso(n, kreg, p, m, mode, numgraphs);
+       generate_iso(n, kreg, p, m, mode, numgraphs, prefix);
    }
    
     return 0;
