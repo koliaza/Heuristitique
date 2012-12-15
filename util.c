@@ -138,6 +138,13 @@ int_list* il_singleton(int x) {
     return il_cons(x, NULL);
 }
 
+int_list* il_copy(int_list *l) {
+    if (l == NULL)
+        return NULL;
+    else
+        return il_cons(l->x, l->next);
+}
+
 void il_free(int_list *l) {
     int_list *p, *q;
     p = l;
@@ -164,6 +171,8 @@ int il_equal(const int_list *l1, const int_list *l2) {
     }
     return (p == NULL && q == NULL);
 }
+
+
 
 /* The insert/remove functions might not have great performance
    because they do a lot of branching */

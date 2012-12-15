@@ -22,6 +22,7 @@ struct int_list {
 
 int_list* il_cons(int x, int_list *l);
 int_list* il_singleton(int x);
+int_list* il_copy(int_list *l);
 /* recursively free all elements */
 void il_free(int_list *l);
 int il_length(const int_list *l);
