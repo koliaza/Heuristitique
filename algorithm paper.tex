@@ -6,7 +6,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[latin9]{inputenc}
 \usepackage{geometry}
-\geometry{verbose,tmargin=3cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
+\geometry{verbose,tmargin=2cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
 \usepackage{setspace}
 \usepackage[unicode=true,pdfusetitle,
  bookmarks=true,bookmarksnumbered=false,bookmarksopen=false,
@@ -45,13 +45,16 @@ and probability p for each edge.
 
 \tableofcontents{}
 
+\newpage{}
+
 
 \section{First Considerations}
 
 There is a strong link between GI and algebra : finding an isomorphism
 is the same as finding a basis in which the adjacency matrix of G
 becomes that of G'. Testing all solutions is equivalent to testing
-all permutations and a naive algorithm would take $n!$ operations.
+all permutations and a naive algorithm would take $n!$ operations. 
+
 The GI problem lies between the complexity classes P and NP and Schöning
 \cite{Schoening1988} proved that it is not NP-complete unless $P=NP$.
 However, no polynomial solution has been found and the best deterministic
@@ -79,7 +82,7 @@ edges of a graph according to the following rules :
 \item At each pass, the color of each vertex is determined by the number
 of neighbours of color c for each c.
 \item After at most n passes, the colors don't change anymore. We then make
-one random choice and use backtracking before coloring again. 
+one random choice before coloring again, using backtracking. 
 \end{itemize}
 These rules actually only produce a certificate of non-isomorphism.
 To construct an isomorphism using WL one uses backtracking coupled
@@ -104,8 +107,8 @@ from x, and $P_{k}(x)$ the number of paths of length k starting from
 x, then if $f$ is an isomorphism between $G$ and $G'$, $N_{k}(x)=N_{k}(f(x))$
 and $P_{k}(x)=P_{k}(f(x))$. Thus, by computing the different $N_{x}$
 and $P_{x}$ we can prune the search tree and limit the possibilities.
-We name the array of couples $P_{k}(x),N_{k}(x)$ for k between 1
-and n PN(x), and compute an array containing PN(x) for each x, obtaining
+We name $PN(x)$ the array of couples $P_{k}(x),N_{k}(x)$ for k between
+1 and n, and compute an array containing $PN(x)$ for each x, obtaining
 the PN arrays. 
 
 
@@ -128,27 +131,27 @@ steps :
 We keep a list of equivalence classes for the vertices of both graphs.
 Each information we gather with the different tests allows us to refine
 the separation into classes, and when they are not compatible to produce
-a certificate of non-isomorphism. Every class of cardinal c has at
-most $c!$ possibilities of isomorphism. When the product of the $c!$
-becomes small, bruteforce becomes possible. The goal of the PN matrix
-is to separate the vertices in as many classes as possible, but bruteforce
-can sometimes be used earlier, as is the case in the primary test
-phase, or during the generation of the PN matrices sometimes. However,
-when one computes the PN arrays, it is not always enough, and so we
-use a technique from WL and compare the neighbourhoods of k-order
-of each vertex to see if it is compatible with all of its images,
-to prune some more. 
+a certificate of non-isomorphism. Every class of cardinal $c$ has
+at most $c!$ possibilities of isomorphism. When the product of the
+$c!$ becomes small, bruteforce becomes possible. The goal of the
+PN matrix is to separate the vertices in as many classes as possible,
+but bruteforce can sometimes be used earlier, as is the case in the
+primary test phase, or during the generation of the PN matrices sometimes.
+However, when one computes the PN arrays, it is not always enough,
+and so we use a technique from WL and compare the neighbourhoods of
+k-order of each vertex to see if it is compatible with all of its
+images, to prune some more. 
 
 
 \subsubsection{Primary test phase }
 
 The problem with the naive algorithm is that the number of possibilities
 grows exponentially in n, however, when one considers permutations
-which are composed of one transposition, there are at most $n^{2}$possibilities
-and each take at most $m$ operations. The first test phase uses different
-simple techniques to quickly find a certificate of non-isomorphism
-or an easy isomorphism when doing so is possible. The tests are run
-in this order : 
+which are composed of one transposition, there are at most $n^{2}$
+possibilities and each take at most $m$ operations. The first test
+phase uses different simple techniques to quickly find a certificate
+of non-isomorphism or an easy isomorphism when doing so is possible.
+The tests are run in this order : 
 \begin{enumerate}
 \item Check for equality between the matrices
 \item Check size and number of connected components
@@ -177,7 +180,7 @@ array to each of its images in the resulting permutations.
 All other methods so far for generating k-regular graphs (and not
 multigraphs) are probabilistic except for very small k, and when $k\ge log(n)$
 have exponential expected time \cite{Wormwald:UniformGeneration},
-so we restricted ourselves to those three models, as our algorithm
+so we mostly restricted ourselves to those three models, as our algorithm
 should work as well on multigraphs as on normal graphs. 
 
 
@@ -188,15 +191,15 @@ graphs are isomorphic if and only if their adjacency matrices are
 similar, one has to compute a random permutation (which corresponds
 to a change of basis), and to apply it to any graph to obtain an isomorphic
 copy. We generate those from all three different models of random
-graphs already implemented. 
+graphs already implemented. \newpage{}
 
 
 \subsection{Performance}
 
 \begin{singlespace}
 We checked the performance of PN on the three types of non-isomorphic
-graphs and here are the results, including parsing time (On an intel
-core i7 2.3Ghz with ubuntu 12.10)
+graphs and here are the results (time in seconds), including parsing
+time (On an intel core i7 2.3Ghz with ubuntu 12.10)
 \end{singlespace}
 
 \hphantom{}
@@ -337,12 +340,12 @@ n in G(n,p) & p & time\tabularnewline
 \end{tabular}~~~~%
 \begin{tabular}{|c|c|c|}
 \hline 
-n  & k-regular & time{*}\tabularnewline
+n  & k-regular & time\tabularnewline
 \hline 
 \hline 
 50 & 4 & 0.029\tabularnewline
 \hline 
-100 & 4 & 0.026\tabularnewline
+100 & 4 & 0.026{*}\tabularnewline
 \hline 
 500 & 4 & 43\tabularnewline
 \hline 
@@ -358,8 +361,8 @@ n  & k-regular & time{*}\tabularnewline
 \hphantom{}
 
 \begin{singlespace}
-The running time in the k-regular case varies a lot (the 100-4 once
-took about 6s). PN proved indeed useful as it reduces drastically
+The running time in the k-regular case varies a lot (the {*} case
+once took about 6s). PN proved indeed useful as it reduces drastically
 the number of possibilities around the fifth multiplication. The use
 of neighbourhood simplification at the end also reduces the number
 of possibilities quite fast. However, when launched on bigger graphs,
@@ -511,8 +514,8 @@ first few multiplications of PN).
 
 The biggest problem was that the numbers in the PN matrix quickly
 grow out of proportions (one can bound them by $n^{n}$ but this bound
-might be reached), so one has to to multiplication modulo p, and we
-chose a prime number p close to $2^{61}$ to be able to do bit-shift
+might be reached), so one has to use multiplication modulo p, and
+we chose a prime number p close to $2^{61}$ to be able to do bit-shift
 easily while having low probability of collisions. We also added another
 version where the modulo is done with $p<2^{32}$, that is much faster
 although the probability of collision is also higher. This means that
@@ -524,6 +527,10 @@ but we have not looked into this possibility.
 The sorting was also source of problems because manual implementations
 behave quite slower than the ones included in the libraries so we
 used qsort\_r to increase performance, which is not a standard function. 
+
+Finally, we had to use some goto in the code, to be sure to free the
+memory. One could implement PN without them, but it would necessitate
+changing the whole control flow. 
 
 
 \subsection{Function Optimization}
@@ -537,7 +544,7 @@ it allows us to have tests in $O(m)$ instead of $O(n^{2})$. Optimization
 on the matrix operations cannot really be done in practice as Strassen's
 algorithm has no interest on the matrix size we generally consider.
 However we took care of memory locality in their representation, which
-might improve the performance in practice. 
+might improve the performance in practice. \newpage{}
 
 
 \subsection{Parallelism}
@@ -577,6 +584,21 @@ are received).
 \item A very efficient Strassen multiplication might also be useful, mostly
 if we want to run PN on bigger graphs. 
 \end{itemize}
+
+\subsection{Files and usage}
+
+All the files can be found at\href{ http://github.com/koliaza/Heuristitique}{ http://github.com/koliaza/Heuristitique}.
+The files can be separated into three categories (plus the pdf and
+tex files) : 
+\begin{itemize}
+\item Basic functions : io.c, util.c, matrix\_mod.c, partitions.c
+\item Graph functions : graph.c, random\_graph.c, pn\_heuristic.c
+\item Global functions : main.c, test\_gen.c
+\end{itemize}
+Commands : one uses main, with the option --verbose, on either two
+filenames or a directory (for k graphs). test\_gen can be called with
+no arguments to see the exact syntax.
+
 \bibliographystyle{plain}
 \bibliography{\string"bibliography algorithms\string"}
 

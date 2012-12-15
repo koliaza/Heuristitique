@@ -6,6 +6,8 @@
 \usepackage[latin9]{inputenc}
 \usepackage{geometry}
 \geometry{verbose,lmargin=2cm,rmargin=2cm}
+\usepackage[unicode=true]
+ {hyperref}
 \begin{document}
 
 \title{An heuristic for graph isomorphisms}
@@ -37,7 +39,7 @@ edges of a graph according to the following rules :
 \item At each pass, the color of each vertex is determined by the number
 of neighbours of color c for each c.
 \item After at most n passes, the colors don't change anymore. We then make
-one random choice and use backtracking before coloring again. 
+one random choice before coloring again, using backtracking. 
 \end{itemize}
 Two isomorphic graphs admit the same coloring, but the converse does
 not always hold: k-regular graphs for example are pathological cases
@@ -53,12 +55,12 @@ PN is based on the following property :
 
 Let $N_{k}(x)$ be the number of neighbours at distance exactly k
 from x, and $P_{k}(x)$ the number of paths of length k starting from
-x, then if $f$ is an isomorphism between $G$ and $G'$ , $N_{k}(x)=N_{k}(f(x))$
+x, then if $f$ is an isomorphism between $G$ and $G'$, $N_{k}(x)=N_{k}(f(x))$
 and $P_{k}(x)=P_{k}(f(x))$. Thus, by computing the different $N_{x}$
 and $P_{x}$ we can prune the search tree and limit the possibilities.
-We name the array of couples $P_{k}(x),N_{k}(x)$ for k between 1
-and n PN(x), and compute an array containing PN(x) for each x, obtaining
-the PN-arrays. 
+We name $PN(x)$ the array of couples $P_{k}(x),N_{k}(x)$ for k between
+1 and n, and compute an array containing $PN(x)$ for each x, obtaining
+the PN arrays. 
 
 
 \subsubsection{Structure of the algorithm}
@@ -108,5 +110,7 @@ be improved by using adjacency lists in the case of sparse graphs,
 but this would require a lot of new code for an improvement that might
 not be sizeable. Some other improvements would target optimization
 of the mulp function, parallelization inside the matrix multiplication
-and interlacing neighbourhood checks with PN-array generation.
+and interlacing neighbourhood checks with PN-array generation. 
+
+All the files can be found at\href{ http://github.com/koliaza/Heuristitique}{ http://github.com/koliaza/Heuristitique}.
 \end{document}
