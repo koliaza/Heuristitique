@@ -6,11 +6,21 @@
 \usepackage[T1]{fontenc}
 \usepackage[latin9]{inputenc}
 \usepackage{geometry}
-\geometry{verbose}
+\geometry{verbose,tmargin=3cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
+\usepackage{setspace}
 \usepackage[unicode=true,pdfusetitle,
  bookmarks=true,bookmarksnumbered=false,bookmarksopen=false,
  breaklinks=false,pdfborder={0 0 0},backref=section,colorlinks=false]
  {hyperref}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+\makeatother
+
 \begin{document}
 
 \title{An heuristic for graph isomorphisms}
@@ -28,16 +38,15 @@ them. The original goal was to implement the Weisfeiler-Lehman heuristic
 in the C programming language, but we chose to implement our own heuristic
 (named PN for Path-Neighbour) to test its performance. The main goal
 was to find an heuristic which would behave polynomially on a bigger
-subset of problems, even if the polynomial degree increases. 
+subset of problems, even if the polynomial degree increases. We adopt
+the notations of graphs with n vertices and m edges. $G(n,p)$ denotes
+the graph generated through the Erdös-Rényi model with n vertices
+and probability p for each edge. 
 
 \tableofcontents{}
 
 
 \section{First Considerations}
-
-We adopt the notations of graphs with n vertices and m edges. $G(n,p)$
-denotes the graph generated through the Erdös-Rényi model with n vertices
-and probability p for each edge. 
 
 There is a strong link between GI and algebra : finding an isomorphism
 is the same as finding a basis in which the adjacency matrix of G
@@ -91,7 +100,7 @@ PN is based on the following property :
 
 Let $N_{k}(x)$ be the number of neighbours at distance exactly k
 from x, and $P_{k}(x)$ the number of paths of length k starting from
-x, then if $f$ is an isomorphism between $G$ and $G'$ , $N_{k}(x)=N_{k}(f(x))$
+x, then if $f$ is an isomorphism between $G$ and $G'$, $N_{k}(x)=N_{k}(f(x))$
 and $P_{k}(x)=P_{k}(f(x))$. Thus, by computing the different $N_{x}$
 and $P_{x}$ we can prune the search tree and limit the possibilities.
 We name the array of couples $P_{k}(x),N_{k}(x)$ for k between 1
@@ -108,25 +117,26 @@ steps :
 \item Input parsing and choice of data structure
 \item Primary test phase
 \item Construction of each PN-array 
-\item Sorting of the PN-arrays
-\item Comparison of the PN-arrays 
-\item Comparison of the neighbours of compatible vertices
+\item Sorting and comparison of the PN-arrays 
+\item Comparison of the neighbourhoods of compatible vertices
 \item If possible construction of an isomorphism by refined bruteforce
 \end{enumerate}
 
 \subsubsection{Details }
 
-We keep the list of image-possibilities for all vertices in a matrix
-form. When one line or column becomes full of zeroes, we have a negative
-certificate. The matrix actually corresponds to classes of an equivalence
-relation, and every class of cardinal c has at most $c!$ possibilities
-of isomorphism. When the product of the $c!$ becomes small, bruteforce
-becomes possible. The goal of the PN matrix is to separate the vertices
-in as many classes as possible, but bruteforce can sometimes be used
-earlier, as is the case in the primary test phase. However, when one
-computes the PN arrays, it is not always enough, and so we use a technique
-from WL and compare the immediate neighbourhood of each vertex to
-see if it is compatible with all of its images, to prune some more. 
+We keep a list of equivalence classes for the vertices of both graphs.
+Each information we gather with the different tests allows us to refine
+the separation into classes, and when they are not compatible to produce
+a certificate of non-isomorphism. Every class of cardinal c has at
+most $c!$ possibilities of isomorphism. When the product of the $c!$
+becomes small, bruteforce becomes possible. The goal of the PN matrix
+is to separate the vertices in as many classes as possible, but bruteforce
+can sometimes be used earlier, as is the case in the primary test
+phase, or during the generation of the PN matrices sometimes. However,
+when one computes the PN arrays, it is not always enough, and so we
+use a technique from WL and compare the neighbourhoods of k-order
+of each vertex to see if it is compatible with all of its images,
+to prune some more. 
 
 
 \subsubsection{Primary test phase }
@@ -143,21 +153,22 @@ in this order :
 \item Check size and number of connected components
 \item Compare the list of degrees and record the number of possibilities
 \item When the number of possibilities is small ($O(n^{2})$) use bruteforce
-\item Still check for simple transpositions when it is not the case
 \end{enumerate}
 
-\section{Tests and Benchmark}
-
-We have included different basic test generation programs, depending
-on the model : 
+\section{Tests and performance}
 
 
 \subsection{Random generation}
+
+We have included different basic test generation programs, depending
+on the model : 
 \begin{itemize}
 \item The Erdös-Rényi $G(n,p)$ model with probability p for each edge works
 in general quite fast because the probability that two graphs are
 not isomorphic (and trigger a certificate) is very high. 
-\item The similar model with $G(n,M)$ behaves the same way.
+\item The similar model with $G(n,M)$ behaves the same way. There is a
+deterministic multigraph version and a probabilistic version in the
+other case. 
 \item A model to generate random k-regular multigraphs that generates k
 random permutations of n vertices and links each vertice of the initial
 array to each of its images in the resulting permutations. 
@@ -166,7 +177,7 @@ All other methods so far for generating k-regular graphs (and not
 multigraphs) are probabilistic except for very small k, and when $k\ge log(n)$
 have exponential expected time \cite{Wormwald:UniformGeneration},
 so we restricted ourselves to those three models, as our algorithm
-should work as well on multigraphs as on normal graphs.
+should work as well on multigraphs as on normal graphs. 
 
 
 \subsection{Isomorphic graph generation}
@@ -179,7 +190,180 @@ copy. We generate those from all three different models of random
 graphs already implemented. 
 
 
-\subsection{Benchmark}
+\subsection{Performance}
+
+\begin{singlespace}
+We checked the performance of PN on the three types of non-isomorphic
+graphs and here are the results, including parsing time (On an intel
+core i7 2.3Ghz with ubuntu 12.10)
+\end{singlespace}
+
+\hphantom{}
+
+\begin{doublespace}
+\begin{tabular}{|c|c|c|}
+\hline 
+n in G(n,p) & p & time\tabularnewline
+\hline 
+\hline 
+100 & 0.05 & 0.002\tabularnewline
+\hline 
+1000 & 0.05 & 0.039\tabularnewline
+\hline 
+10000 & 0.05 & 13.9\tabularnewline
+\hline 
+100 & 0.5 & 0.008\tabularnewline
+\hline 
+1000 & 0.5 & 1.4\tabularnewline
+\hline 
+2000 & 0.5 & 10.5\tabularnewline
+\hline 
+\end{tabular} %
+\begin{tabular}{|c|c|c|}
+\hline 
+n in G(n,M) & M & time\tabularnewline
+\hline 
+\hline 
+100 & 2000 & 0.007\tabularnewline
+\hline 
+1000 & 50000 & 0.087\tabularnewline
+\hline 
+10000 & 200000 & 0.22\tabularnewline
+\hline 
+10000 & 500000 & 0.84\tabularnewline
+\hline 
+10000 & 2000000 & 9.1\tabularnewline
+\hline 
+20000 & 2000000 & 5.0\tabularnewline
+\hline 
+\end{tabular} %
+\begin{tabular}{|c|c|c|}
+\hline 
+n  & k-regular & time\tabularnewline
+\hline 
+\hline 
+50 & 4 & 0.016\tabularnewline
+\hline 
+200 & 4 & 0.48\tabularnewline
+\hline 
+500 & 4 & 8.2\tabularnewline
+\hline 
+50 & 12 & 0.012\tabularnewline
+\hline 
+200 & 12 & 0.49\tabularnewline
+\hline 
+500 & 12 & 8.2\tabularnewline
+\hline 
+\end{tabular} 
+\end{doublespace}
+
+\hphantom{}
+
+\begin{singlespace}
+We saw that in the G(n,p) and G(n,m) the work is most often done by
+the primary test phase, and in k-regular by the first two multiplications
+of the matrix. The same tests run on multigraphs show very similar
+results:
+\end{singlespace}
+
+\hphantom{}
+
+\begin{doublespace}
+\begin{tabular}{|c|c|c|}
+\hline 
+n in G(n,M) & M & time\tabularnewline
+\hline 
+\hline 
+100 & 2000 & 0.006\tabularnewline
+\hline 
+1000 & 50000 & 0.090\tabularnewline
+\hline 
+10000 & 200000 & 0.24\tabularnewline
+\hline 
+10000 & 500000 & 0.85\tabularnewline
+\hline 
+10000 & 2000000 & 9.3\tabularnewline
+\hline 
+20000 & 2000000 & 5.4\tabularnewline
+\hline 
+\end{tabular} %
+\begin{tabular}{|c|c|c|}
+\hline 
+n  & k-regular & time\tabularnewline
+\hline 
+\hline 
+50 & 4 & 0.018\tabularnewline
+\hline 
+200 & 4 & 0.48\tabularnewline
+\hline 
+500 & 4 & 8.0\tabularnewline
+\hline 
+50 & 12 & 0.016\tabularnewline
+\hline 
+200 & 12 & 0.48\tabularnewline
+\hline 
+500 & 12 & 8.0\tabularnewline
+\hline 
+\end{tabular} 
+\end{doublespace}
+
+\hphantom{}
+
+\begin{doublespace}
+Finally, run on isomorphic graphs : 
+\end{doublespace}
+
+\hphantom{}
+
+\begin{doublespace}
+\begin{tabular}{|c|c|c|}
+\hline 
+n in G(n,p) & p & time\tabularnewline
+\hline 
+\hline 
+100 & 0.05 & 0.092\tabularnewline
+\hline 
+300 & 0.05 & 1.8\tabularnewline
+\hline 
+500 & 0.05 & 8.5\tabularnewline
+\hline 
+100 & 0.2 & 0.065\tabularnewline
+\hline 
+300 & 0.2 & 1.8\tabularnewline
+\hline 
+500 & 0.2 & 8.5\tabularnewline
+\hline 
+\end{tabular}%
+\begin{tabular}{|c|c|c|}
+\hline 
+n  & k-regular & time{*}\tabularnewline
+\hline 
+\hline 
+50 & 4 & 0.029\tabularnewline
+\hline 
+100 & 4 & 0.026\tabularnewline
+\hline 
+500 & 4 & 43\tabularnewline
+\hline 
+50 & 12 & 0.39\tabularnewline
+\hline 
+100 & 12 & 5.9\tabularnewline
+\hline 
+500 & 12 & 3930\tabularnewline
+\hline 
+\end{tabular} 
+\end{doublespace}
+
+\hphantom{}
+
+\begin{singlespace}
+The running time in the k-regular case varies a lot (the 100-4 once
+took about 6s). PN proved indeed useful as it reduces drastically
+the number of possibilities around the fifth multiplication. The use
+of neighbourhood simplification at the end also reduces the number
+of possibilities quite fast. However, when launched on bigger graphs,
+it is still slow.
+\end{singlespace}
 
 \pagebreak{}
 
@@ -189,8 +373,15 @@ graphs already implemented.
 
 \subsection{Proof}
 
-Our goal here is to show that the subset of problems solved in polynomial
-time by WL is strictly included in the subset solved by our heuristic.
+Our current algorithm incorporates elements from WL at the end, to
+facilitate this proof. We had an initial proof that did not rely on
+that part but we realized it was flawed one day before the deadline
+for this report, so even though that bit of code might never be used
+in practice it allows us to show that the subset of problems solved
+polynomially is strictly greater than the subset solved by WL. It
+might be possible to show that with minimal modifications our algorithm
+doesn't need that part, but we had no time to try to do so. 
+
 We shall consider an extended version of WL (EWL) to facilitate the
 proof, where colors aren't redistributed among $[1;n]$ but are instead
 an injective function of the vertex's previous color and the multiset
@@ -226,7 +417,8 @@ vertex. Hence we must only prove the second property.
 
 We shall proceed by induction to prove that if EWL colors a vertice
 in G and another in G' in different colors at run k, then PN also
-allows us to differentiate those two vertices. 
+allows us to differentiate those two vertices before examining neighbourhoods
+for the k-th time. 
 
 At the first run of the coloring, every vertex is colored by its degree
 so it is trivially true. 
@@ -240,8 +432,9 @@ Then their neighbourhoods are incompatible, which means that the multiset
 of colors is not the same, so there is a color c such that there is
 one more vertex of color c in N(V) than in N(W). However, those colors
 were attributed at run k, so it means that when comparing the lists
-of neighbours of V and W in PN, those lists will be incompatible by
-hypothesis. Hence V and W can't be linked in PN, which ends the induction. 
+of neighbours of V and W in PN at run k, those lists will be incompatible
+by hypothesis. Hence V and W can't be linked in PN, which ends the
+induction. 
 
 
 \subsection{Complexity analysis}
@@ -260,10 +453,10 @@ time complexity, to quickly solve cases of increasing difficulty.
 The first three tests run in $O(n^{2})$ although they could be implemented
 in $O(m+n*log(n))$. 
 
-The two other tests take at most $O(n^{4})$ but only $O(n^{2}m)$
-when run on lists. However, even though this polynomial is of high
-degree, it does not effectively take as much time because most of
-the tests fail immediately, hence its presence before PN has an utility. 
+The last takes at most $O(n^{4})$ but only $O(n^{2}m)$ when run
+on lists. However, even though this polynomial is of high degree,
+it does not effectively take as much time because most of the tests
+fail immediately, hence its presence before PN has an utility. 
 
 The most time-consuming phase is the array generation. It does n multiplications
 of $n*n$ matrices for each graph, which takes $O(n^{4})$ and a sort
@@ -273,7 +466,7 @@ reduces its interest.
 
 The next phase is the comparison of the arrays. It takes at most $O(n^{2})$,
 and when we also check compatibility with the neighbours we obtain
-$O(n^{3})$.
+$O(n^{3}log(n))$.
 
 If we haven't found an isomorphism or a negative certificate by then
 we launch a bruteforce on the remaining possibilities, which at worst
@@ -282,7 +475,7 @@ runs in $O(n!)$.
 A quick analysis of WL gives a higher bound (in polynomial cases)
 of $O(mn^{2})$ when implemented with adjacency lists although the
 expected running time is lower. We can then separate the problems
-in four categories : 
+in four categories: 
 \begin{enumerate}
 \item The very simple ones that are solved much faster by PN thanks to the
 primary test phase
@@ -292,29 +485,44 @@ phase, and where WL is asymptotically better
 by WL
 \item The hard cases where both algorithms behave exponentially. 
 \end{enumerate}
-We see that we could improve PN by adding WL between the first test
-phase and the array generation, but the overhead would once more increase.
 Also, every information we gather doing initial tests can be used
 by the following ones, which wouldn't be the case with WL (it would
 use the previous ones but would have no impact on the following ones). 
 
 
+\subsection{Differences when run on k graphs}
+
+One advantage of PN is when it is run on k different graphs, as the
+PN matrices can then be sorted in $O(k*log(k))$ time, instead of
+launching a comparison algorithm $k^{2}$ times. Also the generation
+of PN matrice can easily be parallelized. It is an advantage over
+WL as the latter is very hard to parallelize in such fashion. When
+run on only two graphs however, we can interlace the sorting-and-comparing
+phase with the generation of the PN matrix, thus greatly reducing
+the running time (as most cases can be solved by only computing the
+first few multiplications of PN).
+
+
 \section{Implementation and Optimization}
 
 
-\subsection{Data Structures}
+\subsection{Implementation problems}
 
-The choice of data structures varies between adjacency matrix and
-list, and sometimes both, and allows us to take advantage of faster
-algorithms on sparse graphs using lists, while allowing us to know
-in O(1) if two vertices are linked. 
+The biggest problem was that the numbers in the PN matrix quickly
+grow out of proportions (one can bound them by $n^{n}$ but this bound
+might be reached), so one has to to multiplication modulo p, and we
+chose a prime number p close to $2^{61}$ to be able to do bit-shift
+easily while having low probability of collisions. We also added another
+version where the modulo is done with $p<2^{32}$, that is much faster
+although the probability of collision is also higher. This means that
+our implementation is only probabilistic, and there is a small chance
+that it behaves exponentially where another implementation would not.
+Then again, it might never happen, depending on how collisions happen,
+but we have not looked into this possibility.
 
-The construction of the PN-array is generally the most time-expensive
-task, it is mostly done by multiplication of the adjacency matrix.
-Sorting the PN-array is easily done with a heapsort. 
-
-The construction of the isomorphism is done by trying to assign to
-an x an y such that$N(x)=N(y)$ and backtracking when unsuccessful. 
+The sorting was also source of problems because manual implementations
+behave quite slower than the ones included in the libraries so we
+used qsort\_r to increase performance, which is not a standard function. 
 
 
 \subsection{Function Optimization}
@@ -334,14 +542,38 @@ might improve the performance in practice.
 \subsection{Parallelism}
 
 The advantage of the PN-arrays is that they can be generated in a
-completely independent fashion, and so are easy to parallelize. By
-default we create a different thread for each graph, which gives a
-speed-up ratio close to 2 in the basic case, but that can grow up
-to the number of cores when launched on a set of graphs. This is an
-advantage of PN over WL as the threads do not have to communicate,
+completely independent fashion, and so are easy to parallelize. This
+is an advantage of PN over WL as the threads do not have to communicate,
 while the latter has to do some comparisons between each coloring
-at each run, requiring constant interaction between threads.
+at each run, requiring constant interaction between threads. In practice
+the version that runs on two graphs is monothread and interlaces the
+equivalence class creation with PN to run faster, but this improvement
+couldn't be used in a parallelized version. 
 
+
+\subsection{Potential improvements}
+
+Due to time constraints we couldn't implement as many functions as
+we hoped to, but here's a list of potential improvements : 
+\begin{itemize}
+\item Optimize the mulp function, which is the bottleneck of the algorithm.
+This has been done partially with mulp\_small at the price of a small
+probability of going exponential. A detailed analysis of the cases
+when this could arise might even allow us to use naive multiplication
+modulo $2^{64}$ but it isn't sure. 
+\item Parallelization inside the matrix multiplication could yield good
+results. We ran some tests on how well parallelization works on our
+machine (with the sorting algorithms for PN), with and without multithreading,
+and we obtain increase in speed up to a factor 4 plus a 30\% increase
+when using multithreading.
+\item Interlacing the neighbourhood function with the PN generation would
+greatly improve the speed, but would complexify the proof.
+\item We hesitated whether to add a fifth primary test that would try for
+all simple transpositions, which runs quite fast. That kind of method
+might come in handy when the two graphs are very ``close'' (i.e.
+we could imagine that there is a perturbation on the order the vertices
+are received).
+\end{itemize}
 \bibliographystyle{plain}
 \bibliography{\string"bibliography algorithms\string"}
 
