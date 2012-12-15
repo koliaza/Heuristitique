@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "random_graph.h"
@@ -60,7 +61,7 @@ int generate_iso (int n, int kreg, double p, int m, int mode, int numgraphs){
     fprint_graph_list(f, graph_matrix_to_list(gsource));
     fclose(f);
      for (i = 0; i < numgraphs; i++){
-            gcopy = random_isomorphic(gsource);
+            gcopy = graph_matrix_to_list(random_isomorphic(gsource));
             sprintf(filename,"graph%04d",i );
             f = fopen(filename, "w");
             fprint_graph_list(f, gcopy);
@@ -100,6 +101,7 @@ int main(int argc, char **argv) {
             sprintf(filename,"graph%04d",i );
             generate_graph (n, kreg, p, m, mode, filename);
          }
+    }
    else {
        generate_iso(n, kreg, p, m, mode, numgraphs);
    }
