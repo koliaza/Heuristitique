@@ -133,7 +133,7 @@ At each pass, the color of each vertex is determined by the number of neighbours
 
 \begin_layout Itemize
 After at most n passes, the colors don't change anymore.
- We then make one random choice and use backtracking before coloring again.
+ We then make one random choice before coloring again, using backtracking.
  
 \end_layout
 
@@ -176,7 +176,7 @@ Let
 \begin_inset Formula $G'$
 \end_inset
 
- , 
+, 
 \begin_inset Formula $N_{k}(x)=N_{k}(f(x))$
 \end_inset
 
@@ -194,12 +194,19 @@ Let
 \end_inset
 
  we can prune the search tree and limit the possibilities.
- We name the array of couples 
+ We name 
+\begin_inset Formula $PN(x)$
+\end_inset
+
+ the array of couples 
 \begin_inset Formula $P_{k}(x),N_{k}(x)$
 \end_inset
 
- for k between 1 and n PN(x), and compute an array containing PN(x) for
- each x, obtaining the PN-arrays.
+ for k between 1 and n, and compute an array containing 
+\begin_inset Formula $PN(x)$
+\end_inset
+
+ for each x, obtaining the PN arrays.
  
 \end_layout
 
@@ -301,6 +308,18 @@ The biggest problem was that the numbers in the PN-arrays quickly grow out
  Some other improvements would target optimization of the mulp function,
  parallelization inside the matrix multiplication and interlacing neighbourhood
  checks with PN-array generation.
+ 
+\end_layout
+
+\begin_layout Standard
+All the files can be found at
+\begin_inset CommandInset href
+LatexCommand href
+target " http://github.com/koliaza/Heuristitique"
+
+\end_inset
+
+.
 \end_layout
 
 \end_body
