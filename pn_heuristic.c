@@ -530,19 +530,17 @@ void* process_graph(struct process_graph_args *args) {
     }
     *args->class_num_dest = c + 1;
 
+    printf("done\n");
+    
     return NULL;
 }
 
 void find_multiple_isomorphisms(int graph_count, graph_list **graphs,
                                 int *isom_classes) {
-}
-/*
-void find_multiple_isomorphisms(int graph_count, graph_list **graphs,
-                                int *isom_classes) {
     int i, j, k;
     struct process_graph_args args;
     graph_matrix **matrices = malloc(graph_count*sizeof(void*));
-    pn_array **pn_arrays = malloc(graph_count*sizeof(void*));
+    pn_array *pn_arrays = malloc(graph_count*sizeof(void*));
     pthread_t *threads = malloc(graph_count*sizeof(pthread_t));
     int *class_nums = malloc(graph_count*sizeof(int));
     int **tagged_arrays = malloc(graph_count*sizeof(void*));
@@ -551,6 +549,8 @@ void find_multiple_isomorphisms(int graph_count, graph_list **graphs,
         args.graph_list_arg = graphs[i];
         args.matrix_dest = matrices + i;
         args.pn_array_dest = pn_arrays + i;
+        args.class_num_dest = class_nums + i;
+        args.tagged_array_dest = tagged_arrays + i;
         pthread_create(threads + i, NULL,
                        (void * (*)(void *))process_graph, &args);
     }
@@ -558,50 +558,101 @@ void find_multiple_isomorphisms(int graph_count, graph_list **graphs,
         pthread_join(threads[i], NULL);
     }
 
-    int64_t *keys = malloc(graph_count*sizeof(void*));
+    int64_t *keys = malloc(graph_count*sizeof(int64_t));
     partition part;
-    init_partition(&part);
+    init_partition(graph_count, &part);
 
     for (i = 0; i < graph_count; i++) {
-        for (j = 0; j < graph_count; j++) {
-            for (k = 0; k < graph_count; k++) {
-                keys[k] = pn_arrays[k][i]->neighbors[j];
-            }
-            refine_partition(part, keys);
-        }
+        keys[i] = matrices[i]->n;
     }
-    for (i = 0; i < graph_count; i++) {
-        for (j = 0; j < graph_count; j++) {
-            for (k = 0; k < graph_count; k++) {
-                keys[k] = pn_arrays[k][i]->paths[j];
-            }
-            refine_partition(part, keys);
+    refine_partition(&part, keys);
+
+    int_list *size_boundaries = il_copy(part.boundaries);
+
+    /* the following code is a complicated way
+       to refine separately different classes of a partition
+       and then update that partition to reflect the changes */
+    int_list *p, *q, *ppp;
+    q = part.boundaries;
+    for (p = size_boundaries; p->next != NULL; p = p->next) {
+        int n = matrices[p->x]->n;
+        int subclass_count = p->next->x - p->x;
+        partition subpart;
+        init_partition(subclass_count, &subpart);
+        for (i = p->x; i < p->next->x; i++) {
+            subpart.array[i - p->x] = part.array[i];
         }
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n; j++) {
+                for (k = 0; k < subclass_count; k++) {
+                    printf("%p\n", pn_arrays[p->x + k][i]->neighbors);
+                    keys[k] = pn_arrays[p->x + k][i]->neighbors[j];
+                }
+                refine_partition(&subpart, keys);
+            }
+        }
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n; j++) {
+                for (k = 0; k < subclass_count; k++) {
+                    keys[k] = pn_arrays[p->x + k][i]->paths[j];
+                }
+                refine_partition(&subpart, keys);
+            }
+        }
+        for (ppp = subpart.boundaries; ppp != NULL; ppp = ppp->next) {
+            ppp->x += p->x;
+        }
+        for (i = p->x; i < p->next->x; i++) {
+            part.array[i] = subpart.array[i - p->x];
+        }
+        ppp = q->next;
+        q->next = il_append(subpart.boundaries->next, q->next->next);
+        while (q->x != ppp->x)
+            q = q->next;
+        free(ppp);
+        free_partition(&subpart);
     }
-    
-    int_list *p;
+
     int start, end;
-    int tmp;
-    int *useless_result = malloc( * sizeof(int))
-    for (p = part->boundaries; p->next != NULL; p = p->next) {
+    int *useless_result;
+    for (p = part.boundaries; p->next != NULL; p = p->next) {
         start = p->x;
         end = p->next->x;
         i = start;
         while (i < end) {
             k = i+1;
-            for (j = i+1; i < end; j++) {
-                if (pn_exhaustive
+            for (j = i+1; j < end; j++) {
+                int graph_i = part.array[i];
+                int graph_j = part.array[j];
+                useless_result = malloc(matrices[graph_i]->n * sizeof(int));
+                if (pn_exhaustive_search(matrices[graph_i]->n,
+                                         class_nums[graph_i],
+                                         tagged_arrays[graph_i],
+                                         tagged_arrays[graph_j],
+                                         matrices[graph_i],
+                                         matrices[graph_j],
+                                         useless_result)) {
+                    part.array[j] = part.array[k];
+                    part.array[k] = graph_j;
+                    k++;
+                }
+                i = k;
+                p->next = il_cons(k, p->next);
+                p = p->next;
             }
         }
     }
     
-    tag_array_with_partition(part, isom_classes);
+    tag_array_with_partition(&part, isom_classes);
 
-    free_partition(&partition);
+    free_partition(&part);
     for (i = 0; i < graph_count; i++) {
         gm_free(matrices[i]);
-        free(pn_arrays[i]->neighbors);
-        free(pn_arrays[i]->paths);
+        for (j = 0; j < matrices[i]->n; j++) {
+            free(pn_arrays[i][j]->neighbors);
+            free(pn_arrays[i][j]->paths);
+            free(pn_arrays[i][j]);
+        }
         free(pn_arrays[i]);
         free(tagged_arrays[i]);
     }
@@ -611,4 +662,4 @@ void find_multiple_isomorphisms(int graph_count, graph_list **graphs,
     free(class_nums);
     free(tagged_arrays);
 }
-*/
+

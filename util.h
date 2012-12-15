@@ -25,6 +25,8 @@ int_list* il_copy(int_list *l);
 void il_free(int_list *l);
 int il_length(const int_list *l);
 int il_equal(const int_list *l1, const int_list *l2);
+/* mutates the last element of l1 to point to l2 */
+int_list* il_append(int_list *l1, int_list *l2);
 
 /* These functions only work correctly on __sorted__ lists,
    and they are __destructive__ */

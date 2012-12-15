@@ -62,7 +62,15 @@ int il_equal(const int_list *l1, const int_list *l2) {
     return (p == NULL && q == NULL);
 }
 
-
+/* destructive ! */
+int_list* il_append(int_list *l1, int_list *l2) {
+    int_list *p = l1;
+    if (l1 == NULL) return l2;
+    while (p->next != NULL)
+        p = p->next;
+    p->next = l2;
+    return l1;
+}
 
 /* The insert/remove functions might not have great performance
    because they do a lot of branching */
