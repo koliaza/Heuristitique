@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
         printf("     : 4 for k-regular, 5 for k-regular multigraphs ");
         printf("iso  : 1 for generating graphs isomorphic to the first generated");
         return 0;
-    }
+    } /* redundant test but it is better this way*/
     n = argv[1];
     numgraphs = argv[2];
     p = argv[3];
