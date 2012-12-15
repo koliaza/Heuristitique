@@ -6,53 +6,54 @@
 #include "io.h"
 int generate_graph (int n, int kreg, double p, int m, int mode, char* file){
     FILE *f;
-    graph_matrix * g;
+    graph_list * g;
     f = fopen(file, "w");
 
     switch (mode){
         case 1:
-            g = graph_matrix_to_list(erdos_renyi_gnp(n,p));
+            g = graph_matrix_to_list(&erdos_renyi_gnp(n,p));
             break;
         case 2:
-            g = graph_matrix_to_list(erdos_renyi_gnm(n,m));
+            g = graph_matrix_to_list(&erdos_renyi_gnm(n,m));
             break;
         case 3:
-            g = graph_matrix_to_list(erdos_renyi_gnm_multi(n,m));
+            g = graph_matrix_to_list(&erdos_renyi_gnm_multi(n,m));
             break;
         case 4:
-            g = graph_matrix_to_list(random_k_regular(n,k));
+            g = graph_matrix_to_list(&random_k_regular(n,k));
             break;
         case 5:
-           g = graph_matrix_to_list(random_k_regular_multi(n,k));
+           g = graph_matrix_to_list(&random_k_regular_multi(n,k));
             break;
     }
     fprint_graph_list(f, g);
     fclose(f);
     free(g);
+    return 0;
 }
 
 int generate_iso (int n, int kreg, double p, int m, int mode){
     FILE *f;
-    graph_matrix * gsource;
-    graph_matrix * gcopy;
+    graph_list * gsource;
+    graph_list * gcopy;
     char * filename = malloc(20*sizeof(char)); 
     
     f = fopen("graph_iso_source","w");
     switch (mode){
         case 1:
-            g = graph_matrix_to_list(erdos_renyi_gnp(n,p));
+            gsource = graph_matrix_to_list(&erdos_renyi_gnp(n,p));
             break;
         case 2:
-            g = graph_matrix_to_list(erdos_renyi_gnm(n,m));
+            gsource = graph_matrix_to_list(&erdos_renyi_gnm(n,m));
             break;
         case 3:
-            g = graph_matrix_to_list(erdos_renyi_gnm_multi(n,m));
+            gsource = graph_matrix_to_list(&erdos_renyi_gnm_multi(n,m));
             break;
         case 4:
-            g = graph_matrix_to_list(random_k_regular(n,k));
+            gsource = graph_matrix_to_list(&random_k_regular(n,kreg));
             break;
         case 5:
-           g = graph_matrix_to_list(random_k_regular_multi(n,k));
+           gsource = graph_matrix_to_list(&random_k_regular_multi(n,kreg));
             break;
     }
     fprint_graph_list(f, gsource);
@@ -66,6 +67,7 @@ int generate_iso (int n, int kreg, double p, int m, int mode){
             free(gcopy);
          }
     free(gsource);
+    return 0;
 }
 
 int main(int argc, char **argv) {
