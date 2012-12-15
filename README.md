@@ -9,8 +9,8 @@ The program is run with the following arguments :
 or
 - graph1 graph2 to check if there is an isomorphism among the graphs
 
-The test_gen can be used as follows (all arguments are mandatory) : 
-test_gen n numgraphs p m kreg mode iso
+The test_gen can be used as follows (all arguments are mandatory, or the help will be displayed) : 
+test_gen n numgraphs (p || m || kreg) mode iso
 -  n : number of vertices, 
 - numgraphs : number graphs to generate 
 - p and m : as in G(n,p) and G(n,m) 
