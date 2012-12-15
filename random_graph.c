@@ -102,8 +102,10 @@ graph_matrix* random_k_regular_multi(int n, int k) {
 
     for (i = 0; i < k; i++) {
         shuffle(n, t);
-        for (j = 0; j < n; j++)
+        for (j = 0; j < n; j++) {
             gm_multi_edge_add(g, j, t[j]);
+            if (j == t[j]) gm_multi_edge_add(g, j, t[j]);
+        }
     }
 
     free(t);

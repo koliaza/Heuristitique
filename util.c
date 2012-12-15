@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-/*** Numeric utilities ***/
+/*** General utilities ***/
 
 double factorial(int n) {
     int i;
@@ -13,6 +13,7 @@ double factorial(int n) {
     }
     return r;
 }
+
 
 /*** Linked lists ***/
 
@@ -145,6 +146,8 @@ int il_s_member(int x, const int_list *l) {
 
 
 /*** Matrix manipulation ***/
+/* not really actually used because of overflow problems
+   see matrix_mod.h for functions better suited to the problem at hand */
 
 int* matrix_make_id(int n, int *r) {
     int i;
@@ -179,6 +182,7 @@ int* matrix_mult(int n, const int *a, const int *b, int *r) {
     return r;
 }
 
+/* fast exponentiation algorithm */
 int* matrix_exp(int n, const int *a, int m, int *r) {
     /* it would be possible to do one less allocation here
        at the cost of a memmove()
@@ -201,6 +205,7 @@ int* matrix_exp(int n, const int *a, int m, int *r) {
     return r;
 }
 
+/* useful for generating isomorphic graphs */
 int* matrix_basis_perm(int n, const int *a, const int *p, int *r) {
     int i,j;
     

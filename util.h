@@ -1,8 +1,11 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-/*** Numeric utilities ***/
+/*** General utilities ***/
 
+/* output is a double because the value can explode very quickly
+   and using big ints would be too much of a hassle since we
+   only want an approximation */
 double factorial(int n);
 
 /*** Linked lists of integers ***/
@@ -51,7 +54,7 @@ int* matrix_exp(int n, const int *a, int m, int *r);
 /* a : matrix, p : permutation of [1..n]
    computes P^{-1}AP
    runs in O(n^2)
-   TODO : write matrix_basis_transpose which will run in O(n) */
+   TODO (maybe ?) : write matrix_basis_transpose which will run in O(n) */
 int* matrix_basis_perm(int n, const int* a, const int* p, int *r);
 
 /*** Randomness ***/
