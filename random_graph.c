@@ -42,7 +42,7 @@ graph_matrix* erdos_renyi_gnm(int n, int m) {
     return g;
 }
 /* This version can loop infinitely when one gives m>n*n 
-	and with probability 0 in normal case 					 */
+	and with probability 0 in normal case 	*/
 	
 graph_matrix* erdos_renyi_gnm_multi(int n, int m) {
     int i;
@@ -87,7 +87,7 @@ graph_matrix* random_k_regular(int n, int k) {
     free(t);
     return g;
 }
-// this function is also probabilistic and almost always ends.
+/* this function is also probabilistic and almost surely ends. */
 
 graph_matrix* random_k_regular_multi(int n, int k) {
     int i, j;
