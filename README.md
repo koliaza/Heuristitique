@@ -19,4 +19,4 @@ test_gen n numgraphs (p || m || kreg) mode iso
          4 for k-regular, 5 for k-regular multigraph
 - iso  : 1 for generating graphs isomorphic to the first generated
 
-All files are released under WTF public license.
+All files are released under the WTF Public License.
