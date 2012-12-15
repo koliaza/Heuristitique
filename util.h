@@ -9,8 +9,6 @@
    and using big ints would be too much of a hassle since we
    only want an approximation */
 double factorial(int n);
-/* replacement for the non-standard qsort_r function */
-void merge_sort_with_keys(int n, int *array, const int64_t *keys);
 
 /*** Linked lists of integers ***/
 

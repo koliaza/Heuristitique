@@ -77,18 +77,18 @@ int main(int argc, char **argv) {
     double p = 0.0;
 
     char * filename = malloc(20*sizeof(char));
-    if ((strcmp(argv[1], "-help") == 0) || (argc != 8)){
-        printf("'test_gen n numgraphs p m kreg mode iso' with : /n");
-        printf("n : number of vertices, numgraphs : number graphs to generate /n");
-        printf("p and m : as in G(n,p) and G(n,m), kreg : degree when kregular  /n");
-        printf("mode : 1 for G(n,p), 2 for G(n,m), 3 for G(n,m) multigraph/n");
-        printf("     : 4 for k-regular, 5 for k-regular multigraphs ");
-        printf("iso  : 1 for generating graphs isomorphic to the first generated");
-        return 0;
+    if ((argc != 8) || (strcmp(argv[1], "-help") == 0)) {
+        printf("'test_gen n numgraphs p m kreg mode iso' with :\n");
+        printf("n : number of vertices, numgraphs : number graphs to generate\n");
+        printf("p and m : as in G(n,p) and G(n,m), kreg : degree when k-regular\n");
+        printf("mode : 1 for G(n,p), 2 for G(n,m), 3 for G(n,m) multigraph\n");
+        printf("     : 4 for k-regular, 5 for k-regular multigraphs\n");
+        printf("iso  : 1 for generating graphs isomorphic to the first generated\n");
+        return 1;
     } /* redundant test but it is better this way*/
     n = atoi(argv[1]);
     numgraphs = atoi(argv[2]);
-    p = atoi(argv[3]);
+    p = atof(argv[3]);
     m = atoi(argv[4]);
     kreg = atoi(argv[5]);
     mode = atoi(argv[6]);

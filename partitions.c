@@ -1,7 +1,8 @@
-#include <stdlib.h>
-
 #include "partitions.h"
 
+#include <stdlib.h>
+
+#include "sorting.h"
 
 /** All this code contains some duplication to handle both
     partitions of one set and partitions of two sets with matching
